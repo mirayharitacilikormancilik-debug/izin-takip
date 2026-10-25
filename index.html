@@ -1,0 +1,1231 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<title>İzin Takip</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E5E5A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="İzin Takip">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: Defterdar ile aynı aile — tek sütunlu cep uygulaması; üstte dosya fişi özeti, altında dosya kartları; dosya, firma, eşitleme ayrı ekranlar; formlar alttan açılan sayfalar */
+:root{
+  --bg:#F3F6F2; --surface:#FFFFFF; --ink:#13221B; --muted:#5E6E66; --line:#DCE4DE;
+  --accent:#0E5E5A; --accent-ink:#FFFFFF; --soft:#E3EFEC;
+  --ok:#1C7A47; --ok-soft:#E3F2E8; --bad:#B8402C; --bad-soft:#F8E6E1; --warn:#B5770F; --warn-soft:#FBF0DA; --idle:#6B7280; --idle-soft:#ECEEF0;
+  --scrim:rgba(10,20,16,.55);
+  --f-display:"Bricolage Grotesque","Segoe UI",Roboto,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",Roboto,system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"Roboto Mono",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1613; --surface:#16211C; --ink:#E6EEE9; --muted:#93A59C; --line:#26352E;
+  --accent:#4DB8A9; --accent-ink:#06201C; --soft:#173430;
+  --ok:#5CC98A; --ok-soft:#173726; --bad:#F08A72; --bad-soft:#3A1E18; --warn:#E8B04A; --warn-soft:#3A2E14; --idle:#A3A9B2; --idle-soft:#252B2F;
+  --scrim:rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1613; --surface:#16211C; --ink:#E6EEE9; --muted:#93A59C; --line:#26352E;
+  --accent:#4DB8A9; --accent-ink:#06201C; --soft:#173430;
+  --ok:#5CC98A; --ok-soft:#173726; --bad:#F08A72; --bad-soft:#3A1E18; --warn:#E8B04A; --warn-soft:#3A2E14; --idle:#A3A9B2; --idle-soft:#252B2F;
+  --scrim:rgba(0,0,0,.6); color-scheme:dark}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font:15px/1.5 var(--f-body);margin:0}
+body.lock{overflow:hidden}
+.wrap{max-width:640px;margin:0 auto;padding-block:16px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.screen{display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:1.5rem;font-weight:800;letter-spacing:-.01em;min-width:0;overflow-wrap:anywhere}
+h2{font-size:1.05rem;font-weight:600}
+h3{font-size:.95rem;font-weight:600}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{color:var(--muted);font-size:.86rem;margin:0}
+p{margin:0}
+
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hl{display:flex;align-items:center;gap:10px;min-width:0}
+.iconbtn{border:1px solid var(--line);background:var(--surface);width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--ink);flex:none}
+.iconbtn svg{width:20px;height:20px}
+.back{border:0;background:transparent;padding:6px 2px;font-weight:600;color:var(--accent)}
+.ptitle{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ptitle>div{min-width:0}
+
+/* Dosya fişi: alt kenarı tırtıklı */
+.slip{background:var(--accent);color:var(--accent-ink);border-radius:14px 14px 0 0;padding:18px 18px 22px;
+  -webkit-mask:radial-gradient(circle 6px at 50% 100%,transparent 98%,#000) 0 0/16px 100% repeat-x;
+          mask:radial-gradient(circle 6px at 50% 100%,transparent 98%,#000) 0 0/16px 100% repeat-x}
+.slip .label{color:inherit;opacity:.78}
+.slip .big{font:600 2.2rem/1.1 var(--f-num);margin-top:2px}
+.slip .big small{font:500 1rem var(--f-body);opacity:.85;margin-left:6px}
+.slip .row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px;padding-top:12px;border-top:1px dashed color-mix(in srgb,var(--accent-ink) 40%,transparent)}
+.slip .row div{min-width:0}
+.slip .row .v{display:block;font:600 clamp(.82rem,3.6vw,1.1rem) var(--f-num);white-space:nowrap}
+.slip .row .v.t{font:600 .98rem/1.3 var(--f-body)}
+.slip .stage{font:700 1.35rem/1.25 var(--f-display);margin-top:4px;overflow-wrap:anywhere}
+.slip .where{margin-top:6px;font-size:.95rem;display:flex;gap:6px;align-items:flex-start}
+.slip .where svg{width:18px;height:18px;flex:none;margin-top:2px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px;min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+form{display:grid;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:grid;gap:4px;min-width:0}
+.field input,.field select,.field textarea,.search,.sel{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 11px;min-width:0}
+.search,.sel{background:var(--surface)}
+textarea{resize:vertical;min-height:72px}
+.check{display:flex;gap:10px;align-items:center;font-size:.92rem}
+.check input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.primary{border:0;background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:9px;font-weight:600;font-size:1rem}
+.ghost{border:1px solid var(--line);background:var(--surface);padding:8px 12px;border-radius:8px;font-weight:500}
+.ghost.sm{padding:5px 10px;font-size:.86rem}
+.danger{border:1px solid var(--bad);background:transparent;color:var(--bad);padding:8px 12px;border-radius:8px;font-weight:600}
+.danger.armed{background:var(--bad);color:#fff}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btnrow>.primary{flex:1}
+.err{color:var(--bad);font-size:.86rem;margin:0;min-height:1em}
+
+.sample{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--surface);border:1px dashed var(--muted);border-radius:10px;padding:10px 12px;font-size:.88rem}
+
+.newbtn{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:2px 14px;text-align:left;width:100%;background:var(--surface);border:2px dashed var(--accent);border-radius:12px;padding:14px 16px;color:var(--ink)}
+.newbtn svg{grid-row:span 2;width:32px;height:32px;color:var(--accent)}
+.newbtn b{font-size:1.05rem}
+.newbtn small{color:var(--muted);font-size:.84rem}
+
+.alert{display:grid;gap:4px;background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);border-radius:12px;padding:12px 14px;font-size:.9rem}
+.alert button{all:unset;cursor:pointer;display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-top:1px dashed color-mix(in srgb,var(--warn) 30%,transparent)}
+.alert button:first-of-type{border-top:0}
+.alert button span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.alert button span:last-child{color:var(--warn);font-weight:600;white-space:nowrap}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:.84rem;display:inline-flex;gap:6px;align-items:center}
+.chip b{font-family:var(--f-num)}
+.chip[aria-pressed="true"]{background:var(--soft);border-color:var(--accent);color:var(--ink)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;padding:7px 4px;border-radius:7px;font-weight:600;font-size:.84rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.frow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:8px}
+
+/* Dosya kartları */
+.flist{display:grid;gap:10px}
+.fcard{display:grid;gap:6px;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:12px 14px;color:var(--ink)}
+.fcard:hover{border-color:var(--accent)}
+.fcard.late{border-left-color:var(--warn)}
+.fcard.eksik{border-left-color:var(--warn)}
+.fcard.tamam{border-left-color:var(--ok)}
+.fcard.iptal{border-left-color:var(--idle)}
+.fcard .top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:baseline}
+.fcard .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fcard .no{font:500 .78rem var(--f-num);color:var(--muted)}
+.fcard .sub{font-size:.82rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fcard .st{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.86rem}
+.fcard .st b{font-weight:600}
+.meter{height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.fcard.tamam .meter i{background:var(--ok)}
+.fcard .ft{display:flex;justify-content:space-between;gap:8px;font-size:.8rem;color:var(--muted);flex-wrap:wrap}
+.when{font-size:.76rem;font-weight:600;border-radius:6px;padding:2px 7px;background:var(--bg);white-space:nowrap}
+.when.soon{background:var(--warn-soft);color:var(--warn)}
+.tag{font-size:.7rem;border:1px solid var(--line);border-radius:4px;padding:0 5px;color:var(--muted);font-weight:500;white-space:nowrap}
+.tag.pub{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.pill{font-size:.74rem;font-weight:600;border-radius:999px;padding:2px 9px;background:var(--soft);color:var(--accent);white-space:nowrap}
+.pill.eksik{background:var(--warn-soft);color:var(--warn)} .pill.tamam{background:var(--ok-soft);color:var(--ok)} .pill.iptal{background:var(--idle-soft);color:var(--idle)}
+.empty{color:var(--muted);font-size:.92rem;text-align:center;padding:24px 12px;display:grid;gap:10px;justify-items:center}
+
+/* Aşamalar */
+.steps{list-style:none;margin:0;padding:0;display:grid}
+.steps li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:start;padding:5px 0;position:relative}
+.steps li::before{content:"";position:absolute;left:12px;top:27px;bottom:-5px;width:2px;background:var(--line)}
+.steps li:last-child::before{display:none}
+.steps li.done::before{background:var(--accent)}
+.dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;font:600 .7rem var(--f-num);color:var(--muted);position:relative;z-index:1}
+.done .dot{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.cur .dot{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--soft)}
+.steps .n{padding-top:3px;font-size:.92rem;overflow-wrap:anywhere}
+.cur .n{font-weight:600}
+.steps .d{padding-top:4px;font-size:.78rem;color:var(--muted);font-family:var(--f-num)}
+
+.tl{display:grid;gap:0}
+.tl .e{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.tl .e:last-child{border-bottom:0}
+.tl .dt{font:500 .8rem var(--f-num);color:var(--muted);padding-top:2px}
+.tl b{font-weight:600}
+.tl .lc{font-size:.84rem;color:var(--muted)}
+
+.docs{display:grid;gap:8px}
+.doc{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.doc .ic{width:42px;height:42px;border-radius:7px;background:var(--soft);color:var(--accent);display:grid;place-items:center;font:600 .66rem var(--f-num);overflow:hidden}
+.doc .ic img{width:100%;height:100%;object-fit:cover}
+.doc b{display:block;font-weight:500;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc small{color:var(--muted);font-size:.78rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc .acts{display:flex;gap:4px}
+.x{border:0;background:transparent;color:var(--muted);min-width:30px;height:30px;border-radius:6px;font-weight:600}
+.x.armed{background:var(--bad);color:#fff;padding:0 8px;font-size:.78rem}
+.grp{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin-top:4px}
+
+.evr{display:grid;gap:2px}
+.evr label{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.evr label:last-child{border-bottom:0}
+.evr input{width:20px;height:20px;accent-color:var(--accent)}
+.evr .ok span{text-decoration:line-through;color:var(--muted)}
+.miss{background:var(--warn-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:.9rem}
+.miss b{color:var(--warn)}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:.92rem;margin:0}
+.kv dt{color:var(--muted)} .kv dd{margin:0;overflow-wrap:anywhere}
+.share{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center}
+.switch{position:relative;width:48px;height:28px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.switch i{position:absolute;inset:0;border-radius:999px;background:var(--line);transition:background .15s}
+.switch i::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.switch input:checked+i{background:var(--accent)}
+.switch input:checked+i::after{transform:translateX(20px)}
+.switch input:focus-visible+i{outline:2px solid var(--accent);outline-offset:2px}
+
+.codebox{display:grid;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
+.codebox .code{font:600 1.1rem var(--f-num);letter-spacing:.05em;user-select:all;overflow-wrap:anywhere}
+.fmcard{display:grid;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.fmcard .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.fmcard b{font-weight:600;font-size:1.02rem}
+.fmcard small{color:var(--muted);font-size:.84rem}
+.stat{font-size:.82rem;color:var(--muted)}
+.stat b{color:var(--ink);font-weight:600}
+.syncbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:10px 14px;font-size:.88rem}
+.syncbar small{color:var(--muted)}
+
+/* Alt sayfalar */
+.overlay{position:fixed;inset:0;background:var(--scrim);z-index:20;display:flex;align-items:flex-end;justify-content:center;padding-top:env(safe-area-inset-top,0px)}
+.sheet{background:var(--surface);width:100%;max-width:640px;max-height:92%;overflow:auto;border-radius:16px 16px 0 0;
+  padding-block:18px calc(20px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:12px;align-content:start}
+.sheet .field input,.sheet .field select,.sheet .field textarea{background:var(--bg)}
+.overlay.drawer{align-items:stretch;justify-content:flex-start;padding-top:0}
+.dpanel{background:var(--surface);width:min(300px,84%);height:100%;overflow:auto;display:flex;flex-direction:column;gap:2px;
+  padding-block:calc(16px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-bottom,0px));padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:14px;box-shadow:4px 0 24px rgba(0,0,0,.18)}
+.dhead{display:grid;gap:4px;padding:6px 8px 14px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.dhead b{font:700 1.2rem var(--f-display);overflow-wrap:anywhere}
+.dhead small{color:var(--muted)}
+.dsep{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:12px 10px 2px}
+.dlink{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;background:transparent;padding:11px 10px;border-radius:10px;font-weight:600;font-size:1rem;color:var(--ink)}
+.dlink svg{width:22px;height:22px;color:var(--accent);flex:none}
+.dlink:hover,.dlink[aria-current="true"]{background:var(--bg)}
+.dver{margin-top:auto;padding:14px 10px 0;color:var(--muted);font-size:.8rem}
+@media (prefers-reduced-motion:no-preference){.dpanel{animation:dslide .18s ease-out}.sheet{animation:sup .18s ease-out}@keyframes dslide{from{transform:translateX(-100%)}}@keyframes sup{from{transform:translateY(24px);opacity:.7}}}
+
+.welcome{display:grid;gap:14px;padding-top:8vh}
+.choice{display:grid;gap:4px;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--ink)}
+.choice:hover{border-color:var(--accent)}
+.choice b{font:700 1.1rem var(--f-display)}
+.choice small{color:var(--muted);font-size:.9rem}
+
+.viewer{position:fixed;inset:0;background:#000;z-index:30;display:grid;place-items:center;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.viewer img{max-width:100%;max-height:100%;object-fit:contain}
+.viewer button{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));background:#fff;color:#000;border:0;border-radius:999px;padding:8px 14px;font-weight:600}
+.busy{position:fixed;inset:0;background:var(--scrim);z-index:40;display:grid;place-items:center;padding:16px}
+.busy div{background:var(--surface);border-radius:14px;padding:22px 26px;display:grid;gap:12px;justify-items:center;max-width:300px;text-align:center}
+.spin{width:30px;height:30px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:sp .9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1}
+@media (max-width:400px){.grid2{grid-template-columns:1fr}.slip .big{font-size:1.9rem}.seg button{font-size:.78rem}.tl .e{grid-template-columns:1fr;gap:0}}
+@media (prefers-reduced-motion:reduce){.toast,.switch i,.switch i::after{transition:none}.spin{animation-duration:3s}}
+</style>
+</head><body>
+<style>
+.tabs2{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:10px;padding:3px;gap:3px}
+.tabs2 button{border:0;background:transparent;padding:9px;border-radius:7px;font-weight:600;color:var(--muted)}
+.tabs2 button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.orgbtn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;max-width:34vw;min-width:0;flex:0 1 auto;font-size:.84rem}
+header.top .hl{flex:1 1 auto}
+header.top .hl h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.orgbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orgbtn i{font-style:normal;color:var(--muted)}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+.mrow b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.mrow small{color:var(--muted);font-size:.82rem}
+.mrow select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.role{font-size:.7rem;font-weight:600;border-radius:999px;padding:1px 8px;background:var(--soft);color:var(--accent);white-space:nowrap}
+.role.firma{background:var(--warn-soft);color:var(--warn)}
+.who{font-size:.8rem;color:var(--muted)}
+.offline{background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:.88rem}
+.orgrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;text-align:left;width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:12px 14px;color:var(--ink)}
+.orgrow[aria-current="true"]{border-color:var(--accent);background:var(--soft)}
+.orgrow b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crumbs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:.86rem}
+.crumbs button{border:0;background:transparent;color:var(--accent);font-weight:600;padding:2px 4px;border-radius:6px}
+.crumbs button[aria-current="true"]{color:var(--ink)}
+.crumbs span{color:var(--muted)}
+.folds{display:grid;gap:8px}
+.fold{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.fold .go{all:unset;cursor:pointer;display:contents}
+.fold .ic{width:38px;height:38px;border-radius:9px;background:var(--soft);color:var(--accent);display:grid;place-items:center;grid-row:span 2}
+.fold .ic svg{width:22px;height:22px}
+.fold b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fold small{color:var(--muted);font-size:.8rem;grid-column:2}
+.fold:hover{border-color:var(--accent)}
+.fold .late{color:var(--warn);font-weight:600}
+.pill.iade{background:var(--bad-soft);color:var(--bad)}
+.fcard.iade{border-left-color:var(--bad)}
+.alert.bad{background:var(--bad-soft);border-color:color-mix(in srgb,var(--bad) 40%,transparent)}
+.alert.bad button span:last-child{color:var(--bad)}
+.tag.iade{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,transparent);font-weight:600}
+.retbox{background:var(--bad-soft);border-radius:12px;padding:12px 14px;display:grid;gap:4px;font-size:.92rem}
+.retbox b{color:var(--bad)}
+.iadebtn{border:1px solid var(--bad);color:var(--bad);background:var(--surface);padding:8px 12px;border-radius:8px;font-weight:600}
+.bellbtn{position:relative}
+.bellbtn .cnt{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font:600 .68rem/18px var(--f-num);text-align:center;padding:0 4px}
+.hr{display:flex;gap:8px;align-items:center;flex:none}
+.nrow{display:grid;gap:2px;text-align:left;width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:10px 0;color:var(--ink)}
+.nrow:last-child{border-bottom:0}
+.nrow b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nrow span{font-size:.88rem}
+.nrow small{color:var(--muted);font-size:.78rem}
+.nrow.new b::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-right:6px;vertical-align:1px}
+.custcard{cursor:pointer}
+.custcard:hover{border-color:var(--accent)}
+</style>
+
+<div class="wrap"><div id="app"><p class="hint">Yükleniyor…</p></div></div>
+<div id="ovl"></div>
+<div class="viewer" id="viewer" hidden><img id="viewerImg" alt=""><button type="button" data-a="closeViewer">Kapat</button></div>
+<div class="busy" id="busy" hidden><div><span class="spin" aria-hidden="true"></span><span id="busyText">Yükleniyor…</span></div></div>
+<div class="toast" id="toast" role="status"></div>
+<input type="file" id="fileIn" hidden>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+"use strict";
+/* =====================================================================
+   SUNUCU AYARI — Supabase panelinde Project Settings › API sayfasındaki
+   "Project URL" ve "anon public" anahtarını buraya yazarsanız kimse
+   kurulum ekranı görmez. Boş bırakılırsa uygulama ilk açılışta sorar.
+   ===================================================================== */
+var CONFIG = { url: "https://acqotwwmkxwrnlqoykke.supabase.co", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcW90d3dta3h3cm5scW95a2tlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MTUwMjcsImV4cCI6MjEwODQ5MTAyN30.bNLfCfcRB2CaoNd5_SYRY2g2U0lQrD3Hs-nA1EZddYY" };
+
+var VER = "İzin Takip 2.0";
+var IS_APP = !!window.KasaNative;
+function nat(fn){ return IS_APP && typeof window.KasaNative[fn] === "function" }
+var DURUM = {devam:"Devam ediyor", eksik:"Eksik evrak bekleniyor", iade:"Kurum iade etti", tamam:"Tamamlandı", iptal:"Askıda / iptal"};
+var ROL = {yonetici:"Yönetici", calisan:"Çalışan", firma:"Müşteri", misafir:"Paylaşılan kişi"};
+var MADDE = {"":"", "16":"16. madde", "17":"17. madde", "18":"18. madde"};
+var DEFAULT_ISKOLU = ["6831 s. Kanun 16. madde izni","6831 s. Kanun 17/3 madde izni","6831 s. Kanun 18. madde izni","Ağaçlandırma / teknik kontrolörlük","Sel ve erozyon kontrol etüt proje","Kamulaştırma haritası","Emval mesaha / üretim","Envanter ve planlama","Kaya düşmesi ıslah projesi","Orman yolu"];
+function isKolu(v){ return v ? (MADDE[v] || v) : "" }
+function isKollari(){ var l = S.org && S.org.orgs && S.org.orgs.is_kollari; l = Array.isArray(l) && l.length ? l.slice() : DEFAULT_ISKOLU.slice(); S.files.forEach(function(f){ var k = isKolu(f.madde); if(k && l.indexOf(k) < 0) l.push(k) }); return l }
+var BELGE_TUR = ["Harita verisi","Harita / pafta","Resmi yazışma","Başvuru evrakı","Fotoğraf","Diğer"];
+var TURLER = ["Mezarlık","DSİ / sulama","Maden","Kaya düşmesi","Yol","Enerji nakil hattı","Su isale hattı","RES / GES","Baz istasyonu","Turizm"];
+var DEFAULT_LISTS = [
+  {ad:"16-17-18. madde izin (tam süreç)", asamalar:["Talep / sözleşme","Veri analizi (KML / NCZ)","Harita ve dosya hazırlığı","Dosya firmaya teslim","Orman İşletme Şefliği","Orman İşletme Müdürlüğü","Arazi tespiti / kontrol","Orman Bölge Müdürlüğü","Orman Genel Müdürlüğü","Ön izin / bedel tahakkuku","Bedel ve teminat ödemesi","Kesin izin / sözleşme"]},
+  {ad:"Sadece dosya hazırlığı", asamalar:["Talep alındı","Veri analizi","Haritalar hazırlanıyor","Dosya hazır","Firmaya teslim edildi"]}
+];
+var ICON = {
+  menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5M5.5 9.8V20h13V9.8"/></svg>',
+  folder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4l2 2h9A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/><path d="M12 11v5M9.5 13.5h5"/></svg>',
+  firms:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="10" height="17" rx="1"/><path d="M14 9h5a1 1 0 0 1 1 1v10.5H14M7 7.5h4M7 11h4M7 14.5h4M9 20.5v-2.5"/></svg>',
+  fold:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4l2 2h9A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
+  team:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.7.8 2.7 2.5 3 5.2"/></svg>',
+  steps:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><path d="M5 8v8M10 6h10M10 18h10M10 12h10"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>',
+  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16 7l2.5 2.5M14 9l2 2"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>'
+};
+
+/* ================= Yardımcılar ================= */
+function $(id){ return document.getElementById(id) }
+function esc(v){ return String(v == null ? "" : v).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c] }) }
+function pad2(n){ return (n < 10 ? "0" : "") + n }
+function iso(d){ return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate()) }
+function today(){ return iso(new Date()) }
+function fmt(s){ if(!s) return "—"; var p = String(s).slice(0, 10).split("-"); return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : s }
+function days(s){ if(!s) return null; return Math.round((new Date(today() + "T00:00:00") - new Date(String(s).slice(0, 10) + "T00:00:00")) / 864e5) }
+function agoDays(s){ var d = days(s); return d == null ? "" : d <= 0 ? "bugün" : d === 1 ? "dün" : d + " gün önce" }
+function money(n){ return (Number(n) || 0).toLocaleString("tr-TR", {maximumFractionDigits:2}) + " ₺" }
+function sizeTxt(b){ return b > 1048576 ? (b/1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(b/1024)) + " KB" }
+function safeName(s){ return String(s || "belge").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ı/g,"i").replace(/[^A-Za-z0-9._-]+/g, "_").slice(-80) }
+function uuid(){ if(crypto.randomUUID) return crypto.randomUUID(); var b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128; var h = Array.prototype.map.call(b, function(x){ return ("0" + x.toString(16)).slice(-2) }).join(""); return h.slice(0,8)+"-"+h.slice(8,12)+"-"+h.slice(12,16)+"-"+h.slice(16,20)+"-"+h.slice(20) }
+function byId(arr, id){ for(var i=0;i<arr.length;i++) if(arr[i].id === id) return arr[i]; return null }
+var toastT;
+function toast(m){ var t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove("show") }, 3000) }
+function busy(on, txt){ $("busy").hidden = !on; if(txt) $("busyText").textContent = txt }
+function lsGet(k){ try{ return localStorage.getItem(k) }catch(e){ return null } }
+function lsSet(k, v){ try{ if(v == null) localStorage.removeItem(k); else localStorage.setItem(k, v) }catch(e){} }
+function errMsg(e){
+  var m = e && (e.message || e.error_description || e.msg) || String(e || "");
+  if(/Invalid login credentials/i.test(m)) return "E-posta ya da şifre hatalı.";
+  if(/Email not confirmed/i.test(m)) return "E-posta adresinizi onaylamanız gerekiyor; gelen kutunuza bakın.";
+  if(/User already registered/i.test(m)) return "Bu e-posta ile zaten kayıt var; giriş yapın.";
+  if(/Password should be/i.test(m)) return "Şifre en az 6 karakter olmalı.";
+  if(/row-level security|permission denied/i.test(m)) return "Bu işlem için yetkiniz yok.";
+  if(/Failed to fetch|NetworkError|network/i.test(m)) return "Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edin.";
+  return m || "Bir hata oluştu.";
+}
+function q(p){ return p.then(function(r){ if(r.error) throw r.error; return r.data }) }
+
+/* ================= Sunucu ================= */
+var sb = null;
+var S = {owner:false, orgCodes:null, user:null, profile:null, mems:[], org:null, files:[], firms:[], folders:[], myShares:{}, notifs:[], seen:0, lists:[], members:[], profiles:{}, invites:[], det:null, loaded:false};
+function serverConf(){
+  if(CONFIG.url && CONFIG.key) return CONFIG;
+  try{ var c = JSON.parse(lsGet("izin-sunucu") || "null"); if(c && c.url && c.key) return c }catch(e){}
+  return null;
+}
+function initClient(){
+  var c = serverConf(); if(!c || !window.supabase) return false;
+  try{ sb = window.supabase.createClient(c.url, c.key, {auth:{persistSession:true, autoRefreshToken:true, storageKey:"izin-takip-oturum"}}) }catch(e){ sb = null; return false }
+  return true;
+}
+function role(){ return S.org ? S.org.role : null }
+function isStaff(){ return role() === "yonetici" || role() === "calisan" }
+function isAdmin(){ return role() === "yonetici" }
+function orgId(){ return S.org ? S.org.org_id : null }
+function orgName(){ return S.org && S.org.orgs ? S.org.orgs.ad : "" }
+function esik(){ return (S.org && S.org.orgs && S.org.orgs.esik) || 20 }
+
+function loadMe(){
+  sb.rpc("is_platform_owner").then(function(r){ S.owner = !!(r && r.data); if(S.owner) render() });
+  return q(sb.from("profiles").select("*").eq("id", S.user.id).maybeSingle()).then(function(p){
+    S.profile = p || {id:S.user.id, ad:""};
+    return q(sb.from("members").select("org_id, role, firm_id, orgs(id, ad, esik, is_kollari)").eq("user_id", S.user.id));
+  }).then(function(m){
+    S.mems = (m || []).filter(function(x){ return x.orgs }).sort(function(a, b){ return a.orgs.ad.localeCompare(b.orgs.ad, "tr") });
+    var want = lsGet("izin-org"), cur = S.mems.filter(function(x){ return x.org_id === want })[0] || S.mems[0] || null;
+    return selectOrg(cur);
+  });
+}
+var chan = null;
+function selectOrg(m){
+  S.org = m; S.files = []; S.firms = []; S.folders = []; S.myShares = {}; S.notifs = []; S.members = []; S.invites = []; S.det = null; S.loaded = false;
+  if(chan){ try{ sb.removeChannel(chan) }catch(e){} chan = null }
+  if(!m){ render(); return Promise.resolve() }
+  lsSet("izin-org", m.org_id);
+  render();
+  S.seen = +(lsGet("izin-gordum-" + m.org_id) || 0) || (Date.now() - 7*864e5);
+  return Promise.all([loadFiles(), loadFirms(), loadFolders(), role() === "misafir" ? loadMyShares() : null, loadNotifs(), isStaff() ? loadLists() : null, isStaff() ? loadTeam() : null]).then(function(){
+    S.loaded = true; subscribe(); render();
+  })["catch"](function(e){ S.loaded = true; render(); toast(errMsg(e)) });
+}
+function loadFiles(){ return q(sb.from("files").select("*").eq("org_id", orgId()).order("updated_at", {ascending:false})).then(function(d){ S.files = d || [] }) }
+function loadFirms(){ return q(sb.from("firms").select("*").eq("org_id", orgId()).order("ad")).then(function(d){ S.firms = d || [] }) }
+function loadMyShares(){ return q(sb.from("file_shares").select("file_id, yetki").eq("user_id", S.user.id)).then(function(d){ S.myShares = {}; (d || []).forEach(function(x){ S.myShares[x.file_id] = x.yetki }) }) }
+function loadNotifs(){ return q(sb.from("events").select("*").eq("org_id", orgId()).neq("user_id", S.user.id).gt("created_at", new Date(S.seen - 30*864e5).toISOString()).order("created_at", {ascending:false}).limit(40)).then(function(d){ S.notifs = d || [] })["catch"](function(){ S.notifs = [] }) }
+function unread(){ return S.notifs.filter(function(e){ return new Date(e.created_at).getTime() > S.seen }).length }
+function canWrite(f){ if(isStaff() || role() === "firma") return true; return S.myShares[f.id] === "islem" }
+function evText(e){ var f = byId(S.files, e.file_id), a = f && e.asama != null ? (f.asamalar || [])[e.asama] : "";
+  return e.tip === "iade" ? "İade: " + (e.notu || "") : e.tip === "asama" ? (a ? a + " aşamasına geçti" : "Aşama değişti") + (e.notu ? " · " + e.notu : "") : e.tip === "durum" ? "Durum: " + (DURUM[e.durum] || e.durum) : (e.notu || "Yeni kayıt") }
+function onNewEvent(e){
+  if(!e || !S.user || e.user_id === S.user.id) return;
+  if(S.notifs.some(function(x){ return x.id === e.id })) return;
+  var f = byId(S.files, e.file_id); if(!f && !isStaff()) return;
+  S.notifs.unshift(e);
+  var title = (f ? f.ad : "Dosya"), body = (e.user_ad ? e.user_ad + ": " : "") + evText(e);
+  toast(title + " · " + body);
+  try{ if(window.Notification && Notification.permission === "granted" && document.hidden) new Notification(title, {body:body}) }catch(x){}
+  try{ if(nat("notify")) window.KasaNative.notify(title, body) }catch(x){}
+  render();
+}
+function loadOrgCodes(){ return q(sb.rpc("list_org_codes")).then(function(d){ S.orgCodes = d || [] })["catch"](function(e){ S.orgCodes = []; toast(errMsg(e)) }) }
+function loadFolders(){ return q(sb.from("folders").select("*").eq("org_id", orgId()).order("ad")).then(function(d){ S.folders = d || [] }) }
+function loadLists(){ return q(sb.from("stage_lists").select("*").order("sira").order("ad")).then(function(d){ S.lists = d || [] }) }
+function loadTeam(){
+  return q(sb.from("members").select("*").eq("org_id", orgId())).then(function(d){
+    S.members = d || [];
+    var ids = S.members.map(function(x){ return x.user_id });
+    return ids.length ? q(sb.from("profiles").select("id, ad").in("id", ids)) : [];
+  }).then(function(p){ (p || []).forEach(function(x){ S.profiles[x.id] = x.ad });
+    return q(sb.from("invites").select("*").eq("org_id", orgId()).order("created_at", {ascending:false}));
+  }).then(function(iv){ S.invites = iv || [] });
+}
+var refT = {};
+function debounce(key, fn){ clearTimeout(refT[key]); refT[key] = setTimeout(fn, 400) }
+function subscribe(){
+  try{
+    chan = sb.channel("org-" + orgId())
+      .on("postgres_changes", {event:"*", schema:"public", table:"files", filter:"org_id=eq." + orgId()}, function(){ debounce("files", function(){ loadFiles().then(function(){ if(route.s === "file" && S.det){ var f = byId(S.files, route.id); if(f) S.det.file = f } render() }) }) })
+      .on("postgres_changes", {event:"*", schema:"public", table:"folders", filter:"org_id=eq." + orgId()}, function(){ debounce("folders", function(){ loadFolders().then(render) }) })
+      .on("postgres_changes", {event:"INSERT", schema:"public", table:"events", filter:"org_id=eq." + orgId()}, function(p){ onNewEvent(p["new"]) })
+      .on("postgres_changes", {event:"*", schema:"public", table:"events", filter:"org_id=eq." + orgId()}, function(p){ var fid = (p["new"] && p["new"].file_id) || (p.old && p.old.file_id); if(route.s === "file" && fid === route.id) debounce("det", function(){ loadDetail(route.id, true) }) })
+      .on("postgres_changes", {event:"*", schema:"public", table:"docs", filter:"org_id=eq." + orgId()}, function(p){ var fid = (p["new"] && p["new"].file_id) || (p.old && p.old.file_id); if(route.s === "file" && fid === route.id) debounce("det", function(){ loadDetail(route.id, true) }) })
+      .subscribe();
+  }catch(e){}
+}
+function loadDetail(id, quiet){
+  var f = byId(S.files, id);
+  if(!quiet) S.det = {id:id, file:f, events:null, docs:null, priv:null, shares:null};
+  return Promise.all([
+    q(sb.from("events").select("*").eq("file_id", id).order("tarih", {ascending:false}).order("created_at", {ascending:false})),
+    q(sb.from("docs").select("*").eq("file_id", id).order("tarih", {ascending:false})),
+    isStaff() ? q(sb.from("file_private").select("*").eq("file_id", id).maybeSingle()) : null,
+    q(sb.from("files").select("*").eq("id", id).maybeSingle()),
+    isStaff() ? q(sb.from("file_shares").select("*").eq("file_id", id)) : null
+  ]).then(function(r){
+    if(route.s !== "file" || route.id !== id) return;
+    if(r[3]){ var i = S.files.findIndex(function(x){ return x.id === id }); if(i >= 0) S.files[i] = r[3]; else S.files.unshift(r[3]) }
+    S.det = {id:id, file:r[3] || f, events:r[0] || [], docs:r[1] || [], priv:r[2] || null, shares:r[4] || []};
+    render();
+  })["catch"](function(e){ toast(errMsg(e)) });
+}
+
+/* ================= Dosya hesapları ================= */
+function stageName(f){ return f.durum === "tamam" ? "Tamamlandı" : ((f.asamalar || [])[f.aktif || 0] || "—") }
+function isActive(f){ return f.durum === "devam" || f.durum === "eksik" || f.durum === "iade" }
+function isLate(f){ var d = days(f.son_islem); return isActive(f) && d != null && d > esik() }
+function pct(f){ var n = (f.asamalar || []).length || 1; return f.durum === "tamam" ? 100 : Math.round(((f.aktif || 0) + 1) / n * 100) }
+function firmName(id){ var x = id ? byId(S.firms, id) : null; return x ? x.ad : "" }
+function folderOf(id){ return id ? byId(S.folders, id) : null }
+function folderPath(id){ var out = [], f = folderOf(id), guard = 0; while(f && guard++ < 50){ out.unshift(f); f = folderOf(f.parent_id) } return out }
+function pathText(f){ return folderPath(f.folder_id).map(function(x){ return x.ad }).join(" › ") }
+function subFolders(firmId, parentId){ return S.folders.filter(function(x){ return x.firm_id === firmId && (x.parent_id || null) === (parentId || null) }).sort(function(a, b){ return a.ad.localeCompare(b.ad, "tr", {numeric:true}) }) }
+function descIds(id){ var out = [id]; for(var i=0;i<out.length;i++) S.folders.forEach(function(x){ if(x.parent_id === out[i]) out.push(x.id) }); return out }
+function folderStats(id){ var ids = descIds(id), fs = S.files.filter(function(f){ return f.folder_id && ids.indexOf(f.folder_id) >= 0 }); return {n:fs.length, act:fs.filter(isActive).length, late:fs.filter(isLate).length, sub:ids.length - 1} }
+function folderOptions(firmId, sel){
+  var out = '<option value="">' + (firmId ? "Müşterinin ana klasörü" : "Önce müşteri seçin") + '</option>';
+  (function walk(parent, depth){ subFolders(firmId, parent).forEach(function(x){ out += '<option value="' + esc(x.id) + '"' + (sel === x.id ? " selected" : "") + '>' + "\u00a0\u00a0".repeat(depth * 2) + (depth ? "└ " : "") + esc(x.ad) + '</option>'; walk(x.id, depth + 1) }) })(null, 0);
+  return out;
+}
+function nextNo(){ var y = new Date().getFullYear(), mx = 0; S.files.forEach(function(f){ var m = /^(\d{4})\/(\d+)$/.exec(f.no || ""); if(m && +m[1] === y) mx = Math.max(mx, +m[2]) }); return y + "/" + ("00" + (mx + 1)).slice(-3) }
+
+/* ================= Paylaşma / açma (telefon uygulamasıyla uyumlu) ================= */
+var pendingShare = null;
+window.kasaShareDone = function(ok){ busy(false); var r = pendingShare; pendingShare = null; if(r) r(!!ok) };
+function blobToB64(b){ return new Promise(function(res){ var r = new FileReader(); r.onload = function(){ res(String(r.result).split(",")[1] || "") }; r.onerror = function(){ res("") }; r.readAsDataURL(b) }) }
+function shareFiles(files, mail){
+  if(nat("addAttachment") && nat("shareAttachments")){
+    busy(true, "Dosya hazırlanıyor…");
+    try{ window.KasaNative.clearAttachments() }catch(e){}
+    return files.reduce(function(p, f){ return p.then(function(){ return blobToB64(f.blob).then(function(b){ window.KasaNative.addAttachment(f.name, f.blob.type || "application/octet-stream", b) }) }) }, Promise.resolve())
+      .then(function(){ return new Promise(function(res){ pendingShare = res; window.KasaNative.shareAttachments(mail.to || "", mail.subject || "", mail.body || "") }) });
+  }
+  try{ var fl = files.map(function(f){ return new File([f.blob], f.name, {type:f.blob.type || "application/octet-stream"}) }); if(navigator.canShare && navigator.canShare({files:fl}) && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return navigator.share({files:fl, title:mail.subject || ""}).then(function(){ return true }, function(){ return false }) }catch(e){}
+  files.forEach(function(f){ var a = document.createElement("a"); a.href = URL.createObjectURL(f.blob); a.download = f.name; document.body.appendChild(a); a.click(); a.remove() });
+  return Promise.resolve(true);
+}
+function shareText(txt){
+  if(nat("shareText")){ window.KasaNative.shareText(txt); return }
+  if(navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){ navigator.share({text:txt})["catch"](function(e){ if(!e || e.name !== "AbortError") showCopy(txt) }); return }
+  try{ navigator.clipboard.writeText(txt).then(function(){ toast("Mesaj kopyalandı; WhatsApp ya da e-postaya yapıştırın") }, function(){ showCopy(txt) }) }catch(e){ showCopy(txt) }
+}
+function showCopy(txt){ openSheet('<div class="ph"><h2>Mesajı kopyalayın</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div><textarea readonly rows="7" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px">' + esc(txt) + '</textarea>') }
+function pickFiles(accept, multiple, cb){
+  var inp = $("fileIn"); inp.value = ""; inp.accept = accept; inp.multiple = !!multiple;
+  inp.onchange = function(){ var fs = Array.prototype.slice.call(inp.files || []); if(fs.length) cb(fs) };
+  inp.click();
+}
+
+/* ================= Gezinme ================= */
+var route = {s:"home"}, filt = {q:"", firma:"", durum:"aktif", asama:""}, ui = {};
+function go(s, extra){ route = {s:s}; if(extra) for(var k in extra) route[k] = extra[k]; ui = {}; closeSheet(); if(s === "file") loadDetail(route.id); render(); try{ window.scrollTo(0, 0) }catch(e){} }
+function openSheet(html){ $("ovl").innerHTML = '<div class="overlay" data-ov="1"><div class="sheet" role="dialog" aria-modal="true">' + html + '</div></div>'; document.body.classList.add("lock") }
+function closeSheet(){ $("ovl").innerHTML = ""; document.body.classList.remove("lock") }
+function openDrawer(){
+  var link = function(to, icon, label){ return '<button type="button" class="dlink" data-go="' + to + '"' + (route.s === to ? ' aria-current="true"' : '') + '>' + ICON[icon] + esc(label) + '</button>' };
+  var h = '<div class="overlay drawer" data-ov="1"><nav class="dpanel" aria-label="Menü"><div class="dhead"><b>' + esc(orgName() || "İzin Takip") + '</b><small>' + esc((S.profile && S.profile.ad) || "") + (role() ? " · " + ROL[role()] : "") + '</small></div>';
+  if(S.org){
+    h += link("home", "home", isStaff() ? "Dosyalar" : "Dosyalarım");
+    if(isStaff()) h += link(route.s === "cust" ? "cust" : "firms", "firms", "Müşteriler").replace('data-go="cust"', 'data-go="firms"') + link("team", "team", "Ekip ve davetler") + link("lists", "steps", "Aşama listelerim");
+  }
+  h += '<button type="button" class="dlink" data-a="orgs">' + ICON.folder + 'Büro değiştir / katıl</button>' + link("settings", "gear", "Ayarlar");
+  if(installEvt) h += '<button type="button" class="dlink" data-a="install">' + ICON.home + 'Uygulamayı yükle</button>';
+  h += '<div class="dver">' + VER + '</div></nav></div>';
+  $("ovl").innerHTML = h; document.body.classList.add("lock");
+}
+
+/* ================= Çizim ================= */
+function render(){
+  var app = $("app"), h = "";
+  if(!window.supabase) h = offlineHTML();
+  else if(!sb) h = serverHTML();
+  else if(!S.user) h = authHTML();
+  else if(!S.org) h = (route.s === "settings" ? settingsHTML() : noOrgHTML());
+  else {
+    var s = route.s;
+    if(s === "file") h = fileHTML();
+    else if(s === "firms" && isStaff()) h = firmsHTML();
+    else if(s === "cust") h = custHTML();
+    else if(s === "team" && isStaff()) h = teamHTML();
+    else if(s === "lists" && isStaff()) h = listsHTML();
+    else if(s === "settings") h = settingsHTML();
+    else h = homeHTML();
+  }
+  app.innerHTML = '<section class="screen">' + h + '</section>';
+  hydrateThumbs();
+}
+function topbar(title, sub){
+  return '<header class="top"><div class="hl"><button type="button" class="iconbtn" data-a="menu" aria-label="Menüyü aç">' + ICON.menu + '</button><div style="min-width:0"><h1>' + esc(title) + '</h1>' + (sub ? '<div class="hint" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(sub) + '</div>' : '') + '</div></div>' +
+    '<div class="hr">' + (S.org ? '<button type="button" class="iconbtn bellbtn" data-a="bell" aria-label="Bildirimler">' + ICON.bell + (unread() ? '<span class="cnt">' + unread() + '</span>' : '') + '</button>' : '') +
+    (S.mems.length ? '<button type="button" class="orgbtn" data-a="orgs" aria-label="Büro değiştir"><span>' + esc(orgName() || "Büro seç") + '</span><i>▾</i></button>' : '') + '</div></header>';
+}
+function backbar(label, to){ return '<header class="top"><button type="button" class="back" data-go="' + to + '">‹ ' + esc(label) + '</button></header>' }
+
+function offlineHTML(){ return '<div class="welcome"><h1>İzin Takip</h1><div class="offline">Uygulama sunucuya bağlanamadı. İnternet bağlantınızı kontrol edip yeniden açın.</div><button type="button" class="primary" data-a="reload">Yeniden dene</button></div>' }
+function serverHTML(){
+  return '<div class="welcome"><div><span class="label">İlk kurulum</span><h1 style="font-size:1.8rem;margin-top:4px">Sunucu bağlantısı</h1><p class="hint" style="margin-top:6px">Supabase panelinde <b>Project Settings › API</b> sayfasındaki iki bilgiyi yazın. Bunu bir kez yaparsınız.</p></div>' +
+    '<form id="srvForm" class="panel"><div class="field"><label class="label" for="srvUrl">Project URL</label><input id="srvUrl" inputmode="url" autocomplete="off" placeholder="https://xxxx.supabase.co"></div>' +
+    '<div class="field"><label class="label" for="srvKey">anon public anahtarı</label><textarea id="srvKey" rows="3" autocomplete="off" placeholder="eyJhbGciOi…"></textarea></div><p class="err" id="srvErr"></p><button class="primary">Bağlan</button></form></div>';
+}
+function authHTML(){
+  var reg = ui.reg;
+  return '<div class="welcome"><div><span class="label">Hoş geldiniz</span><h1 style="font-size:1.9rem;margin-top:4px">İzin Takip</h1><p class="hint" style="margin-top:6px">Dosyalarınızın ve işlerinizin hangi aşamada ve nerede olduğunu büronuz ve müşterilerinizle birlikte takip edin.</p></div>' +
+    '<div class="tabs2" role="group"><button type="button" data-a="authTab" data-v="0" aria-pressed="' + !reg + '">Giriş yap</button><button type="button" data-a="authTab" data-v="1" aria-pressed="' + !!reg + '">Kayıt ol</button></div>' +
+    '<form id="authForm" class="panel">' + (reg ? '<div class="field"><label class="label" for="auAd">Adınız soyadınız</label><input id="auAd" autocomplete="name" required></div>' : '') +
+    '<div class="field"><label class="label" for="auMail">E-posta</label><input id="auMail" type="email" autocomplete="email" inputmode="email" required></div>' +
+    '<div class="field"><label class="label" for="auPw">Şifre</label><input id="auPw" type="password" autocomplete="' + (reg ? "new-password" : "current-password") + '" minlength="6" required></div>' +
+    '<p class="err" id="auErr"></p><button class="primary">' + (reg ? "Hesap oluştur" : "Giriş yap") + '</button></form>' +
+    '<p class="hint">Firma olarak davet edildiyseniz önce kayıt olun, sonra size verilen kodu girin.</p></div>';
+}
+function noOrgHTML(){
+  return topbar("Hoş geldiniz", (S.profile && S.profile.ad) || "") +
+    '<p class="hint">Henüz bir büroya bağlı değilsiniz. Size gönderilen davet kodunu aşağıya yazın.</p>' +
+    joinFormHTML() +
+    orgFormHTML();
+}
+function orgFormHTML(){
+  return '<form id="orgForm" class="panel"><h2>Yeni büro aç</h2><p class="hint">' + (S.owner ? 'Açtığınız büronun yöneticisi olursunuz.' : 'Yeni büro yalnızca sistem sahibinin verdiği <b>büro açma koduyla</b> açılabilir. Bir büroya çalışan, müşteri ya da paylaşılan kişi olarak katılacaksanız yukarıdaki davet kodunu kullanın.') + '</p>' +
+    '<div class="field"><label class="label" for="orgAd">Büro adı</label><input id="orgAd" required placeholder="Örn. Fidan Ormancılık ve Mühendislik"></div>' +
+    (S.owner ? '' : '<div class="field"><label class="label" for="orgCode">Büro açma kodu</label><input id="orgCode" placeholder="B…-…" autocomplete="off" autocapitalize="characters" style="font-family:var(--f-num);letter-spacing:.06em"></div>') +
+    '<p class="err" id="orgErr"></p><button class="ghost">Büroyu aç</button></form>';
+}
+function joinFormHTML(){ return '<form id="joinForm" class="panel"><h2>Davet koduyla katıl</h2><input class="search" id="joinCode" placeholder="ABCD-1234" autocomplete="off" autocapitalize="characters" maxlength="9" aria-label="Davet kodu" style="font-family:var(--f-num);letter-spacing:.08em;font-size:1.1rem"><p class="err" id="joinErr"></p><button class="primary">Katıl</button></form>' }
+
+/* ---------- Dosyalar ---------- */
+function filtered(){
+  var qq = filt.q.trim().toLocaleLowerCase("tr");
+  return S.files.filter(function(f){
+    if(filt.firma && f.firm_id !== filt.firma) return false;
+    if(filt.durum === "aktif" && !isActive(f)) return false;
+    if(filt.durum === "gec" && !isLate(f)) return false;
+    if(filt.durum === "tamam" && f.durum !== "tamam") return false;
+    if(filt.asama && (stageName(f) !== filt.asama || !isActive(f))) return false;
+    if(qq){ var hay = [f.no, f.ad, isKolu(f.madde), firmName(f.firm_id), f.il, f.ilce, f.tur, f.kurum_no, f.konum, f.isletme, f.sefi].join(" ").toLocaleLowerCase("tr"); if(hay.indexOf(qq) < 0) return false }
+    return true;
+  }).sort(function(a, b){ return (isLate(b) - isLate(a)) || String(b.updated_at).localeCompare(String(a.updated_at)) });
+}
+function fileCard(f){
+  var late = isLate(f), cls = f.durum === "devam" ? (late ? "late" : "") : f.durum;
+  var sub = [isStaff() && route.s !== "cust" ? firmName(f.firm_id) : "", route.s === "cust" || !isStaff() && route.s === "home" ? "" : pathText(f), isKolu(f.madde), f.tur, [f.il, f.ilce].filter(Boolean).join(" / ")].filter(Boolean).join(" · ");
+  return '<button type="button" class="fcard ' + cls + '" data-open="' + esc(f.id) + '"><span class="top"><span class="nm">' + esc(f.ad) + '</span><span class="no">' + esc(f.no || "") + '</span></span>' +
+    '<span class="sub">' + esc(sub) + '</span><span class="st">' + (f.durum !== "devam" ? '<span class="pill ' + f.durum + '">' + esc(f.durum === "eksik" ? "Eksik evrak" : f.durum === "iade" ? "İade edildi" : DURUM[f.durum]) + '</span>' : '') + (f.iade_sayisi && f.durum !== "iade" ? '<span class="tag iade">' + f.iade_sayisi + ' kez iade</span>' : '') + '<b>' + esc(stageName(f)) + '</b></span>' +
+    '<span class="meter"><i style="width:' + pct(f) + '%"></i></span>' +
+    '<span class="ft"><span>' + (f.konum ? "📍 " + esc(f.konum) : "&nbsp;") + '</span><span>' + (late ? '<span class="when soon">' + days(f.son_islem) + ' gündür işlem yok</span>' : 'Son işlem ' + esc(agoDays(f.son_islem))) + (isStaff() && f.paylas ? ' · <span class="tag pub">müşteri görüyor</span>' : '') + '</span></span></button>';
+}
+function homeHTML(){
+  var staff = isStaff(), title = staff ? "Dosyalar" : "Dosyalarım";
+  if(role() === "misafir") title = "Paylaşılanlar";
+  var h = topbar(title, staff ? ((S.profile && S.profile.ad) || "") + " · " + ROL[role()] : (role() === "misafir" ? orgName() : firmName(S.org.firm_id)));
+  if(!S.loaded) return h + '<p class="hint">Dosyalar yükleniyor…</p>';
+  var act = S.files.filter(isActive), late = S.files.filter(isLate), eks = S.files.filter(function(f){ return f.durum === "eksik" });
+  var kurum = act.filter(function(f){ var k = (f.konum || "").toLocaleLowerCase("tr"); return f.durum !== "iade" && k && k.indexOf("biz") < 0 && k.indexOf("büro") < 0 }).length;
+  var iad = S.files.filter(function(f){ return f.durum === "iade" });
+  h += '<section class="slip"><span class="label">' + (staff ? "Aktif dosya" : "Takipteki dosya") + '</span><div class="big">' + (staff ? act.length : S.files.length) + '<small>' + (staff ? (S.files.length - act.length ? (S.files.length - act.length) + " kapalı" : "") : act.length + " devam ediyor") + '</small></div>' +
+    '<div class="row"><div><span class="label">Kurumda</span><span class="v">' + kurum + '</span></div><div><span class="label">' + esik() + '+ gün bekleyen</span><span class="v">' + late.length + '</span></div><div><span class="label">Eksik evrak</span><span class="v">' + eks.length + '</span></div></div></section>';
+  if(!staff && role() === "firma" && S.folders.length && !filt.q){
+    var myF = S.org.firm_id;
+    return h + '<input class="search" id="fq" type="search" placeholder="Ara: proje, il, kurum no…" value="" aria-label="Dosya ara">' + custBody(myF, route.folder || null, false);
+  }
+  if(staff) h += '<button type="button" class="newbtn" data-a="newFile">' + ICON.folder + '<b>Yeni izin dosyası</b><small>Proje, firma, yer ve aşama listesini seçin</small></button>';
+  if(iad.length) h += '<div class="alert bad"><b>Kurumdan iade edilen dosyalar</b>' + iad.slice(0, 8).map(function(f){ return '<button type="button" data-open="' + esc(f.id) + '"><span>' + esc(f.ad) + (f.konum ? ' · ' + esc(f.konum) : '') + '</span><span>' + esc(agoDays(f.son_islem)) + '</span></button>' }).join("") + '</div>';
+  if(staff && late.length) h += '<div class="alert"><b>Uzun süredir işlem görmeyen dosyalar</b>' + late.slice(0, 5).map(function(f){ return '<button type="button" data-open="' + esc(f.id) + '"><span>' + esc(f.ad) + ' · ' + esc(f.konum || stageName(f)) + '</span><span>' + days(f.son_islem) + ' gün</span></button>' }).join("") + '</div>';
+  if(staff){
+    var by = {}; act.forEach(function(f){ var k = stageName(f); by[k] = (by[k] || 0) + 1 });
+    var keys = Object.keys(by).sort(function(a, c){ return by[c] - by[a] });
+    if(keys.length) h += '<section class="panel"><h2>Aktif dosyalar hangi aşamada</h2><div class="chips">' + keys.map(function(k){ return '<button type="button" class="chip" data-a="fAsama" data-v="' + esc(k) + '" aria-pressed="' + (filt.asama === k) + '">' + esc(k) + ' <b>' + by[k] + '</b></button>' }).join("") + '</div></section>';
+  }
+  h += '<div class="seg" role="group" aria-label="Durum">' + [["aktif","Aktif"],["gec","Bekleyen"],["tamam","Biten"],["","Hepsi"]].map(function(x){ return '<button type="button" data-a="fDurum" data-v="' + x[0] + '" aria-pressed="' + (filt.durum === x[0]) + '">' + x[1] + '</button>' }).join("") + '</div>';
+  h += '<div class="frow"' + (staff ? '' : ' style="grid-template-columns:1fr"') + '><input class="search" id="fq" type="search" placeholder="Ara: proje, il, kurum no…" value="' + esc(filt.q) + '" aria-label="Dosya ara">' +
+    (staff ? '<select class="sel" id="ffirma" aria-label="Firma"><option value="">Tüm firmalar</option>' + S.firms.map(function(x){ return '<option value="' + esc(x.id) + '"' + (filt.firma === x.id ? " selected" : "") + '>' + esc(x.ad) + '</option>' }).join("") + '</select>' : '') + '</div>';
+  if(filt.asama) h += '<div class="btnrow"><span class="hint">Aşama: <b>' + esc(filt.asama) + '</b></span><button type="button" class="ghost sm" data-a="fAsama" data-v="">Temizle</button></div>';
+  var list = filtered();
+  h += '<div class="flist">' + (list.length ? list.map(fileCard).join("") : '<div class="empty">' + (S.files.length ? 'Bu filtreye uyan dosya yok.<button type="button" class="ghost sm" data-a="clearF">Filtreleri temizle</button>' : (staff ? 'Henüz dosya yok. “Yeni izin dosyası” ile ilk dosyanızı ekleyin.' : role() === "misafir" ? 'Sizinle paylaşılan dosya kalmadı.' : 'Büro sizinle henüz bir dosya paylaşmadı.')) + '</div>') + '</div>';
+  return h;
+}
+function stepsHTML(f){
+  return '<ol class="steps">' + (f.asamalar || []).map(function(a, i){ var cls = f.durum === "tamam" || i < (f.aktif || 0) ? "done" : i === (f.aktif || 0) ? "cur" : ""; var dt = (f.asama_tarih || {})[i];
+    return '<li class="' + cls + '"><span class="dot">' + (cls === "done" ? "✓" : i + 1) + '</span><span class="n">' + esc(a) + '</span><span class="d">' + (dt ? fmt(dt) : "") + '</span></li>' }).join("") + '</ol>';
+}
+function histHTML(f, evs){
+  if(!evs) return '<p class="hint">Yükleniyor…</p>';
+  if(!evs.length) return '<p class="hint">Henüz kayıt yok.</p>';
+  return '<div class="tl">' + evs.map(function(e){
+    var head = e.tip === "iade" ? '<span class="tag iade">İADE</span> ' + (e.asama != null ? '<b>' + esc((f.asamalar || [])[e.asama] || "") + ' aşamasına döndü</b> ' : '') : e.tip === "asama" && e.asama != null ? '<b>' + esc((f.asamalar || [])[e.asama] || "") + '</b> ' : e.tip === "durum" ? '<b>Durum: ' + esc(DURUM[e.durum] || e.durum) + '</b> ' : '';
+    var mine = S.user && e.user_id === S.user.id;
+    return '<div class="e"><span class="dt">' + fmt(e.tarih) + '</span><span>' + head + (isStaff() ? (e.pub ? '<span class="tag pub">müşteri görüyor</span>' : '<span class="tag">büro içi</span>') : '') +
+      (e.notu ? '<div>' + esc(e.notu) + '</div>' : '') + (e.konum ? '<div class="lc">📍 ' + esc(e.konum) + '</div>' : '') +
+      '<div class="who">' + esc(e.user_ad || "") + (e.rol === "firma" ? ' <span class="role firma">müşteri</span>' : '') + ((mine || isAdmin()) ? ' · <button type="button" class="x" data-evdelete="' + esc(e.id) + '" style="height:auto;min-width:0;padding:0 4px;font-size:.78rem">sil</button>' : '') + '</div></span></div>' }).join("") + '</div>';
+}
+function groupDocs(arr){ var g = {}; (arr || []).forEach(function(x){ var t = BELGE_TUR.indexOf(x.tur) >= 0 ? x.tur : "Diğer"; (g[t] = g[t] || []).push(x) }); return BELGE_TUR.filter(function(t){ return g[t] }).map(function(t){ return [t, g[t]] }) }
+function docsHTML(docs){
+  if(!docs) return '<p class="hint">Yükleniyor…</p>';
+  if(!docs.length) return '<p class="hint">' + (isStaff() ? "Harita verilerini (KML, NCZ, SHP zip), harita PDF'lerini, resmi yazıları ve başvuru evrakını buraya ekleyin." : "Henüz belge yok. Elinizdeki evrakı “Belge ekle” ile gönderebilirsiniz.") + '</p>';
+  return '<div class="docs">' + groupDocs(docs).map(function(gr){ return '<div class="grp">' + esc(gr[0]) + '</div>' + gr[1].map(function(x){
+    var ext = (String(x.ad).split(".").pop() || "").toUpperCase().slice(0, 4), img = /^image\//.test(x.tip || "");
+    var canEdit = isStaff() || (S.user && x.uploaded_by === S.user.id);
+    return '<div class="doc"><span class="ic"' + (img ? ' data-thumb="' + esc(x.path) + '"' : '') + '>' + esc(ext) + '</span><span style="min-width:0"><b>' + esc(x.ad) + '</b><small>' + fmt(x.tarih) + (x.boyut ? " · " + sizeTxt(x.boyut) : "") + (x.user_ad ? " · " + esc(x.user_ad) : "") + '</small>' +
+      (x.notu ? '<small>' + esc(x.notu) + '</small>' : '') + (isStaff() ? '<small>' + (x.pub ? '<span class="tag pub">müşteri görüyor</span>' : '<span class="tag">büro içi</span>') + '</small>' : '') + '</span>' +
+      '<span class="acts"><button type="button" class="ghost sm" data-doc="' + esc(x.id) + '">Aç</button>' + (canEdit ? '<button type="button" class="x" data-docmenu="' + esc(x.id) + '" aria-label="Belge seçenekleri">⋯</button>' : '') + '</span></div>' }).join("") }).join("") + '</div>';
+}
+function fileHTML(){
+  var d = S.det, f = (d && d.file) || byId(S.files, route.id);
+  if(!f) return backbar("Dosyalar", "home") + '<p class="hint">' + (d ? "Dosya yükleniyor…" : "Dosya bulunamadı ya da artık sizinle paylaşılmıyor.") + '</p>';
+  var staff = isStaff(), miss = (f.evrak || []).filter(function(e){ return !e.ok });
+  var sub = [isKolu(f.madde), f.tur, [f.il, f.ilce].filter(Boolean).join(" / ")].filter(Boolean).join(" · ");
+  var h = backbar(route.from === "cust" ? "Klasöre dön" : (staff ? "Dosyalar" : "Dosyalarım"), "home").replace('data-go="home"', route.from === "cust" ? 'data-a="backToFolder"' : 'data-go="home"');
+  if(f.firm_id && (staff || (role() === "firma" && f.folder_id))) h += '<nav class="crumbs" aria-label="Konum"><button type="button" data-cust="' + esc(f.firm_id) + '">' + esc(firmName(f.firm_id) || "Müşteri") + '</button>' + folderPath(f.folder_id).map(function(x){ return '<span>›</span><button type="button" data-cust="' + esc(f.firm_id) + '" data-folder="' + esc(x.id) + '">' + esc(x.ad) + '</button>' }).join("") + '</nav>';
+  h += '<div class="ptitle"><div><span class="num hint">' + esc(f.no || "") + (f.kurum_no ? " · Kurum no " + esc(f.kurum_no) : "") + '</span><h1>' + esc(f.ad) + '</h1><p class="hint">' + esc(sub) + '</p></div>' + (staff ? '<button type="button" class="ghost" data-a="editFile">Düzenle</button>' : '<span class="pill ' + esc(f.durum) + '">' + esc(DURUM[f.durum]) + '</span>') + '</div>';
+  h += '<section class="slip"><span class="label">Şu anki aşama · ' + (f.durum === "tamam" ? "bitti" : ((f.aktif || 0) + 1) + " / " + (f.asamalar || []).length) + '</span><div class="stage">' + esc(stageName(f)) + '</div>' +
+    '<div class="where">' + ICON.pin + '<span>' + esc(f.konum || "Konum girilmedi") + '</span></div>' +
+    '<div class="row"><div><span class="label">Son işlem</span><span class="v">' + fmt(f.son_islem) + '</span></div><div><span class="label">Geçen</span><span class="v t">' + esc(agoDays(f.son_islem) || "—") + '</span></div><div><span class="label">' + (f.iade_sayisi ? "İade" : "Durum") + '</span><span class="v t">' + esc(f.iade_sayisi ? f.iade_sayisi + " kez" : (DURUM[f.durum] || "")) + '</span></div></div></section>';
+  if(canWrite(f)) h += '<div class="btnrow"><button type="button" class="primary" data-a="islem">' + (f.durum === "iade" && staff ? "Düzeltildi, tekrar gönder" : (staff ? "İşlem / aşama gir" : "İşlem / not gir")) + '</button><button type="button" class="iadebtn" data-a="iade">Kurum iade etti</button>' + (staff ? '<button type="button" class="ghost" data-a="durum">Durum</button>' : '') + '</div>';
+  if(f.durum === "iade"){ var li = ((d && d.events) || []).filter(function(e){ return e.tip === "iade" })[0];
+    h += '<div class="retbox"><b>Dosya kurumdan iade edildi' + (f.iade_sayisi > 1 ? ' (' + f.iade_sayisi + '. iade)' : '') + '</b>' + (li ? '<span>' + fmt(li.tarih) + ' · ' + esc(li.notu) + '</span>' : '') + '<span class="hint">' + (staff ? 'Düzeltip kuruma tekrar gönderdiğinizde “Düzeltildi, tekrar gönder” ile kaydedin.' : 'Büro dosyayı düzeltip kuruma tekrar gönderdiğinde burada görünecek.') + '</span></div>' }
+  if(staff) h += '<section class="panel"><div class="share"><div><h2>Müşteri görsün</h2><p class="hint">' + (f.firm_id ? (f.paylas ? esc(firmName(f.firm_id)) + " yetkilileri bu dosyayı görür, işlem ve belge ekleyebilir. Ücret, özel not ve “büro içi” kayıtları görmez." : "Şu an yalnızca büro görüyor.") : "Paylaşmak için Düzenle'den müşteri seçin.") + '</p></div>' +
+    '<label class="switch"><input type="checkbox" id="payChk" ' + (f.paylas ? "checked " : "") + (f.firm_id ? "" : "disabled ") + 'aria-label="Firma görsün"><i></i></label></div></section>';
+  if(staff){
+    var shs = (d && d.shares) || [];
+    h += '<section class="panel"><div class="ph"><h2>Başka kişilerle paylaş</h2><button type="button" class="ghost sm" data-a="shareFile">+ Paylaşım kodu</button></div>' +
+      (shs.length ? '<div>' + shs.map(function(x){ return '<div class="mrow"><span style="min-width:0"><b>' + esc(S.profiles[x.user_id] || "Adsız") + '</b><small>' + fmt(x.created_at) + ' tarihinden beri</small></span><span class="btnrow"><select data-shareyetki="' + esc(x.user_id) + '" aria-label="Yetki"><option value="gor"' + (x.yetki === "gor" ? " selected" : "") + '>Sadece görsün</option><option value="islem"' + (x.yetki === "islem" ? " selected" : "") + '>İşlem de girsin</option></select><button type="button" class="x" data-sharedel="' + esc(x.user_id) + '" aria-label="Paylaşımı kaldır">✕</button></span></div>' }).join("") + '</div>'
+        : '<p class="hint">Müşteri dışında birine (taşeron, danışman, kurum personeli) yalnızca bu dosyayı göstermek için paylaşım kodu oluşturun. Ücret, özel not ve “büro içi” kayıtları görmez.</p>') + '</section>';
+  }
+  if(miss.length) h += '<div class="miss"><b>' + (staff ? "Beklenen evrak" : "Sizden beklenen evrak") + ':</b> ' + miss.map(function(e){ return esc(e.ad) }).join(", ") + '</div>';
+  h += '<section class="panel"><h2>Aşamalar</h2>' + stepsHTML(f) + '</section>';
+  h += '<section class="panel"><div class="ph"><h2>Belgeler</h2>' + (canWrite(f) ? '<button type="button" class="ghost sm" data-a="addDoc">+ Belge ekle</button>' : '') + '</div>' + docsHTML(d && d.docs) + '</section>';
+  if(staff) h += '<section class="panel"><div class="ph"><h2>Evrak listesi</h2><span class="hint">İşaretsizler müşteriye “beklenen” görünür</span></div><div class="evr">' + (f.evrak || []).map(function(e, i){ return '<label class="' + (e.ok ? "ok" : "") + '"><input type="checkbox" data-ev="' + i + '"' + (e.ok ? " checked" : "") + '><span>' + esc(e.ad) + '</span><button type="button" class="x" data-evdel="' + i + '" aria-label="Kaldır">✕</button></label>' }).join("") + '</div>' +
+    '<form id="evForm" class="frow" style="grid-template-columns:minmax(0,1fr) auto"><input class="search" id="evNew" placeholder="Örn. muvafakat yazısı, tapu kaydı" aria-label="Yeni evrak"><button class="ghost">Ekle</button></form></section>';
+  h += '<section class="panel"><h2>İşlem geçmişi</h2>' + histHTML(f, d && d.events) + '</section>';
+  if(staff){
+    var p = (d && d.priv) || {};
+    h += '<section class="panel"><div class="ph"><h2>Ücret ve özel not</h2><span class="tag">büro içi</span></div><dl class="kv"><dt>Hizmet bedeli</dt><dd class="num">' + (p.ucret != null ? money(p.ucret) : "—") + '</dd><dt>Alınan</dt><dd class="num">' + (p.odenen != null ? money(p.odenen) : "—") + '</dd><dt>Kalan</dt><dd class="num">' + (p.ucret != null ? money((+p.ucret || 0) - (+p.odenen || 0)) : "—") + '</dd></dl>' + (p.ozel_not ? '<p style="white-space:pre-wrap">' + esc(p.ozel_not) + '</p>' : '') + '</section>';
+    h += '<section class="panel"><dl class="kv"><dt>Orman İşletme Md.</dt><dd>' + esc(f.isletme || "—") + '</dd><dt>İşletme Şefliği</dt><dd>' + esc(f.sefi || "—") + '</dd></dl></section>';
+    h += '<button type="button" class="danger" data-a="delFile" id="delFileBtn">' + (ui.delArm ? "Eminim, dosyayı ve belgelerini sil" : "Dosyayı sil") + '</button>';
+  } else {
+    h += '<section class="panel"><dl class="kv"><dt>Orman İşletme Md.</dt><dd>' + esc(f.isletme || "—") + '</dd><dt>İşletme Şefliği</dt><dd>' + esc(f.sefi || "—") + '</dd><dt>Büro</dt><dd>' + esc(orgName()) + '</dd></dl></section>';
+  }
+  return h;
+}
+
+/* ---------- Firmalar ---------- */
+function firmsHTML(){
+  var h = topbar("Müşteriler", orgName());
+  h += '<p class="hint">Müşteriye girince klasörleri ve dosyaları görünür. Müşteri yetkilisine davet kodu verirseniz uygulamaya kayıt olup kodu girer; yalnızca “Müşteri görsün” açık dosyaları görür, bu dosyalara işlem ve belge ekleyebilir.</p>';
+  h += '<div class="btnrow"><button type="button" class="primary" data-a="newFirm">+ Müşteri ekle</button></div>';
+  if(!S.firms.length) h += '<div class="empty">Henüz müşteri yok. Örneğin “KASKİ” gibi bir müşteri ekleyip altına klasörler açabilirsiniz.</div>';
+  h += S.firms.map(function(x){
+    var all = S.files.filter(function(f){ return f.firm_id === x.id }), sh = all.filter(function(f){ return f.paylas });
+    var users = S.members.filter(function(m){ return m.role === "firma" && m.firm_id === x.id });
+    var inv = S.invites.filter(function(i){ return i.firm_id === x.id && i.uses < i.max_uses && new Date(i.expires_at) > new Date() })[0];
+    var nf = S.folders.filter(function(z){ return z.firm_id === x.id }).length;
+    return '<article class="fmcard custcard" data-cust="' + esc(x.id) + '"><div class="top"><b>' + esc(x.ad) + ' ›</b><span class="stat"><b>' + all.length + '</b> dosya · <b>' + nf + '</b> klasör · <b>' + sh.length + '</b> paylaşılıyor</span></div>' +
+      (x.yetkili || x.tel || x.eposta ? '<small>' + esc([x.yetkili, x.tel, x.eposta].filter(Boolean).join(" · ")) + '</small>' : '') +
+      '<small>Uygulamadaki yetkilileri: ' + (users.length ? users.map(function(m){ return esc(S.profiles[m.user_id] || "Adsız") }).join(", ") : "henüz yok") + '</small>' +
+      (inv ? '<div class="codebox"><span class="label">Davet kodu · ' + (inv.max_uses - inv.uses) + ' kullanım kaldı</span><span class="code">' + esc(inv.code) + '</span></div>' : '') +
+      '<div class="btnrow"><button type="button" class="ghost sm" data-invfirm="' + esc(x.id) + '">' + (inv ? "Kodu gönder" : "Davet kodu oluştur") + '</button><button type="button" class="ghost sm" data-cust="' + esc(x.id) + '">Klasörler ve dosyalar</button><button type="button" class="ghost sm" data-editfirm="' + esc(x.id) + '">Düzenle</button></div></article>';
+  }).join("");
+  return h;
+}
+/* ---------- Müşteri: klasörler ve dosyalar ---------- */
+function custBody(firmId, folderId, staff){
+  var firm = byId(S.firms, firmId), path = folderPath(folderId), cur = folderId ? folderOf(folderId) : null;
+  var h = '<nav class="crumbs" aria-label="Konum"><button type="button" data-cust="' + esc(firmId) + '"' + (!folderId ? ' aria-current="true"' : '') + '>' + esc(firm ? firm.ad : "Müşteri") + '</button>' +
+    path.map(function(x, i){ return '<span>›</span><button type="button" data-cust="' + esc(firmId) + '" data-folder="' + esc(x.id) + '"' + (i === path.length - 1 ? ' aria-current="true"' : '') + '>' + esc(x.ad) + '</button>' }).join("") + '</nav>';
+  var subs = subFolders(firmId, folderId).map(function(x){ return {f:x, st:folderStats(x.id)} }).filter(function(o){ return staff || o.st.n > 0 });
+  var files = S.files.filter(function(f){ return f.firm_id === firmId && (f.folder_id || null) === (folderId || null) }).sort(function(a, b){ return (isLate(b) - isLate(a)) || String(a.ad).localeCompare(String(b.ad), "tr", {numeric:true}) });
+  if(staff) h += '<div class="btnrow"><button type="button" class="ghost" data-a="newFolder">+ Klasör</button><button type="button" class="ghost" data-a="newFileHere">+ İzin dosyası</button>' + (cur ? '<button type="button" class="ghost" data-a="editFolder">Klasörü düzenle</button>' : '') + '</div>';
+  if(subs.length) h += '<div class="folds">' + subs.map(function(o){ var st = o.st;
+    return '<div class="fold"><button type="button" class="go" data-cust="' + esc(firmId) + '" data-folder="' + esc(o.f.id) + '"><span class="ic">' + ICON.fold + '</span><b>' + esc(o.f.ad) + '</b><small>' + st.n + ' dosya' + (st.act ? ' · ' + st.act + ' aktif' : '') + (st.sub ? ' · ' + st.sub + ' alt klasör' : '') + (st.late ? ' · <span class="late">' + st.late + ' bekleyen</span>' : '') + '</small></button><span class="hint">›</span></div>' }).join("") + '</div>';
+  if(files.length) h += '<div class="flist">' + files.map(fileCard).join("") + '</div>';
+  if(!subs.length && !files.length) h += '<div class="empty">' + (staff ? (folderId ? "Bu klasör boş. Alt klasör ya da izin dosyası ekleyin." : "Bu müşterinin henüz klasörü ya da dosyası yok. Örneğin proje adıyla bir klasör açıp içine izin dosyalarını ekleyin.") : "Bu klasörde size açık dosya yok.") + '</div>';
+  return h;
+}
+function custHTML(){
+  var firm = byId(S.firms, route.id);
+  if(!firm) return backbar("Müşteriler", "firms") + '<p class="hint">Müşteri bulunamadı.</p>';
+  var all = S.files.filter(function(f){ return f.firm_id === firm.id });
+  var h = backbar(route.folder ? "Üst klasör" : "Müşteriler", "firms").replace('data-go="firms"', route.folder ? 'data-a="upFolder"' : 'data-go="firms"');
+  h += '<div class="ptitle"><div><span class="label">Müşteri</span><h1>' + esc(firm.ad) + '</h1><p class="hint">' + all.length + ' dosya · ' + all.filter(isActive).length + ' aktif · ' + all.filter(isLate).length + ' uzun bekleyen</p></div><button type="button" class="ghost" data-editfirm="' + esc(firm.id) + '">Müşteriyi düzenle</button></div>';
+  return h + custBody(firm.id, route.folder || null, true);
+}
+function folderForm(x){
+  var st = x.id ? folderStats(x.id) : null;
+  return '<form id="folderForm"><div class="ph"><h2>' + (x.id ? "Klasörü düzenle" : "Yeni klasör") + '</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    (x.parentName ? '<p class="hint">Konum: ' + esc(x.parentName) + '</p>' : '') +
+    '<div class="field"><label class="label" for="foAd">Klasör adı</label><input id="foAd" required maxlength="120" value="' + esc(x.ad || "") + '" placeholder="Örn. 47 Helete içme suyu hattı"></div>' +
+    '<button type="submit" class="primary">' + (x.id ? "Kaydet" : "Klasörü aç") + '</button>' +
+    (x.id ? '<button type="button" class="danger" data-a="delFolder">Klasörü sil</button><p class="hint">' + (st.sub ? st.sub + " alt klasör de silinir. " : "") + (st.n ? "İçindeki " + st.n + " dosya silinmez, müşterinin ana klasörüne taşınır." : "Klasör boş.") + '</p>' : '') + '</form>';
+}
+
+/* ---------- Ekip ---------- */
+function teamHTML(){
+  var h = topbar("Ekip ve davetler", orgName());
+  var staff = S.members.filter(function(m){ return m.role === "yonetici" || m.role === "calisan" }), firmU = S.members.filter(function(m){ return m.role === "firma" }), guests = S.members.filter(function(m){ return m.role === "misafir" });
+  var row = function(m){
+    var me = S.user && m.user_id === S.user.id;
+    var right = isAdmin() && !me ? '<select data-memrole="' + esc(m.user_id) + '" aria-label="Rol">' + ["yonetici","calisan"].concat(m.role === "firma" || m.role === "misafir" ? [m.role] : []).map(function(r){ return '<option value="' + r + '"' + (m.role === r ? " selected" : "") + '>' + ROL[r] + '</option>' }).join("") + '</select>' : '<span class="role ' + m.role + '">' + ROL[m.role] + '</span>';
+    return '<div class="mrow"><span style="min-width:0"><b>' + esc(S.profiles[m.user_id] || "Adsız") + (me ? " (siz)" : "") + '</b><small>' + (m.role === "firma" ? esc(firmName(m.firm_id) || "Müşteri") : m.role === "misafir" ? "Tek tek paylaşılan dosyaları görür" : ROL[m.role]) + '</small></span><span class="btnrow">' + right + (isAdmin() && !me ? '<button type="button" class="x" data-memdel="' + esc(m.user_id) + '" aria-label="Çıkar">✕</button>' : '') + '</span></div>';
+  };
+  h += '<section class="panel"><h2>Büro çalışanları</h2><div>' + staff.map(row).join("") + '</div>' +
+    (isAdmin() ? '<div class="btnrow"><button type="button" class="ghost" data-a="invStaff" data-v="calisan">Çalışan davet et</button><button type="button" class="ghost" data-a="invStaff" data-v="yonetici">Yönetici davet et</button></div>' : '<p class="hint">Çalışan davetini yönetici oluşturur.</p>') + '</section>';
+  h += '<section class="panel"><h2>Firma kullanıcıları</h2>' + (firmU.length ? '<div>' + firmU.map(row).join("") + '</div>' : '<p class="hint">Henüz firma kullanıcısı yok. Firmalar ekranından davet kodu oluşturun.</p>') + '</section>';
+  if(guests.length) h += '<section class="panel"><h2>Dosya paylaşılan kişiler</h2><div>' + guests.map(row).join("") + '</div><p class="hint">Bir kişiyi buradan çıkarırsanız sizinle paylaşılan bütün dosyalara erişimi kalkar.</p></section>';
+  var open = S.invites.filter(function(i){ return i.uses < i.max_uses && new Date(i.expires_at) > new Date() });
+  if(open.length) h += '<section class="panel"><h2>Açık davet kodları</h2>' + open.map(function(i){ return '<div class="mrow"><span style="min-width:0"><b class="num">' + esc(i.code) + '</b><small>' + (i.role === "firma" ? esc(firmName(i.firm_id)) + " · müşteri" : i.role === "misafir" ? esc((byId(S.files, i.file_id) || {}).ad || "Dosya") + " · " + (i.yetki === "islem" ? "işlem girebilir" : "sadece görür") : ROL[i.role]) + ' · ' + (i.max_uses - i.uses) + ' kullanım · ' + fmt(i.expires_at) + ' tarihine kadar</small></span><span class="btnrow"><button type="button" class="ghost sm" data-sendinv="' + esc(i.code) + '">Gönder</button><button type="button" class="x" data-invdel="' + esc(i.code) + '" aria-label="İptal">✕</button></span></div>' }).join("") + '</section>';
+  return h;
+}
+/* ---------- Aşama listelerim ---------- */
+function listsHTML(){
+  var h = topbar("Aşama listelerim", "Yalnızca size ait");
+  h += '<p class="hint">Bu listeler size aittir; yeni dosya açarken birini seçersiniz. Ekibinizdeki herkes kendi listelerini oluşturur. Açılan her dosyanın aşamaları ayrıca dosyanın kendi içinde değiştirilebilir.</p>';
+  if(!S.lists.length) h += '<section class="panel"><p class="hint">Henüz listeniz yok. Hazır örneklerle başlayabilir ya da boş bir liste ekleyebilirsiniz.</p><div class="btnrow"><button type="button" class="ghost" data-a="seedLists">Hazır örnekleri ekle</button></div></section>';
+  h += '<form id="listsForm">' + S.lists.map(function(l, i){ return '<section class="panel"><div class="field"><label class="label" for="lAd' + i + '">Liste adı</label><input id="lAd' + i + '" value="' + esc(l.ad) + '"></div><div class="field"><label class="label" for="lAs' + i + '">Aşamalar (her satıra bir tane, sırayla)</label><textarea id="lAs' + i + '" rows="10">' + esc((l.asamalar || []).join("\n")) + '</textarea></div><button type="button" class="danger" data-listdel="' + esc(l.id) + '" style="justify-self:start">Listeyi sil</button></section>' }).join("") +
+    '<div class="btnrow">' + (S.lists.length ? '<button type="submit" class="primary">Listeleri kaydet</button>' : '') + '<button type="button" class="ghost" data-a="listNew">+ Liste ekle</button></div></form>';
+  return h;
+}
+/* ---------- Ayarlar ---------- */
+function settingsHTML(){
+  var h = topbar("Ayarlar", "");
+  h += '<form id="profForm" class="panel"><h2>Profilim</h2><div class="field"><label class="label" for="pAd">Adınız (kayıtlarda görünür)</label><input id="pAd" value="' + esc((S.profile && S.profile.ad) || "") + '"></div><p class="hint">' + esc(S.user ? S.user.email : "") + '</p><button class="primary">Kaydet</button></form>';
+  if(S.org && isAdmin()) h += '<form id="orgSetForm" class="panel"><h2>Büro</h2><div class="field"><label class="label" for="oAd">Büro adı</label><input id="oAd" value="' + esc(orgName()) + '"></div><div class="field"><label class="label" for="oEsik">Kaç gün işlem olmazsa uyarsın</label><input id="oEsik" type="number" min="1" inputmode="numeric" value="' + esik() + '"></div>' +
+    '<div class="field"><label class="label" for="oIs">İş kolları (her satıra bir tane)</label><textarea id="oIs" rows="10">' + esc(((S.org.orgs.is_kollari && S.org.orgs.is_kollari.length) ? S.org.orgs.is_kollari : DEFAULT_ISKOLU).join("\n")) + '</textarea><span class="hint">Dosya açarken “İş kolu” kutusunda bu liste çıkar. Listede olmayan bir iş kolu dosyada yazılırsa buraya kendiliğinden eklenir.</span></div><button class="primary">Kaydet</button></form>';
+  if(S.org && !isAdmin()) h += '<section class="panel"><h2>' + esc(orgName()) + '</h2><p class="hint">Rolünüz: ' + ROL[role()] + '</p><button type="button" class="danger" data-a="leaveOrg" id="leaveBtn">Bu bürodan ayrıl</button></section>';
+  if(S.owner){
+    h += '<section class="panel"><h2>Büro açma kodları</h2><p class="hint">Sistemin sahibi sizsiniz; yeni büroyu yalnızca siz açabilirsiniz. Bir meslektaşınızın da kendi bürosunu açmasını isterseniz ona tek kullanımlık bir kod üretin. O büronun verilerini siz de göremezsiniz; yalnızca altyapıyı (depolama alanını) paylaşırsınız.</p>' +
+      '<form id="ocForm" class="frow" style="grid-template-columns:minmax(0,1fr) auto"><input class="search" id="ocNot" placeholder="Kimin için? (örn. Ahmet Bey)" aria-label="Kod notu"><button class="ghost">Kod üret</button></form>' +
+      (S.orgCodes == null ? '<button type="button" class="ghost sm" data-a="loadOc" style="justify-self:start">Kodları göster</button>' : S.orgCodes.length ? '<div>' + S.orgCodes.map(function(c){ return '<div class="mrow"><span style="min-width:0"><b class="num">' + esc(c.code) + '</b><small>' + esc(c.notu || "") + (c.used_at ? ' · kullanıldı: ' + esc(c.org_ad || "") + (c.kullanan ? ' (' + esc(c.kullanan) + ')' : '') : ' · kullanılmadı') + '</small></span><span class="btnrow">' + (c.used_at ? '' : '<button type="button" class="ghost sm" data-ocsend="' + esc(c.code) + '">Gönder</button><button type="button" class="x" data-ocdel="' + esc(c.code) + '" aria-label="Kodu sil">✕</button>') + '</span></div>' }).join("") + '</div>' : '<p class="hint">Henüz kod üretmediniz.</p>') + '</section>';
+  }
+  h += '<section class="panel"><h2>Hesap</h2><div class="btnrow"><button type="button" class="ghost" data-a="logout">Çıkış yap</button>' + (!CONFIG.url ? '<button type="button" class="ghost" data-a="resetServer">Sunucu bağlantısını değiştir</button>' : '') + '</div></section>';
+  return h;
+}
+function hydrateThumbs(){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-thumb]"), function(el){
+    var p = el.getAttribute("data-thumb");
+    sb.storage.from("belgeler").createSignedUrl(p, 3600).then(function(r){ if(r.data && r.data.signedUrl && el.isConnected) el.innerHTML = '<img alt="" src="' + esc(r.data.signedUrl) + '">' });
+  });
+}
+
+/* ================= Formlar ================= */
+function fileForm(f, isNew, priv){
+  priv = priv || {};
+  return '<form id="fileForm"><div class="ph"><h2>' + (isNew ? "Yeni izin dosyası" : "Dosyayı düzenle") + '</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    '<div class="field"><label class="label" for="eAd">Proje adı</label><input id="eAd" required maxlength="160" value="' + esc(f.ad || "") + '" placeholder="Örn. Hadim köyü mezarlık alanı izni"></div>' +
+    '<div class="grid2"><div class="field"><label class="label" for="eNo">Dosya no</label><input id="eNo" value="' + esc(f.no || "") + '"></div><div class="field"><label class="label" for="eKurum">Kurum evrak / başvuru no</label><input id="eKurum" value="' + esc(f.kurum_no || "") + '"></div></div>' +
+    '<div class="field"><label class="label" for="eFirma">Müşteri</label><select id="eFirma"><option value="">Seçilmedi</option>' + S.firms.map(function(x){ return '<option value="' + esc(x.id) + '"' + (f.firm_id === x.id ? " selected" : "") + '>' + esc(x.ad) + '</option>' }).join("") + '<option value="__new">+ Yeni müşteri…</option></select></div>' +
+    '<div class="field" id="eNewFirmBox" hidden><label class="label" for="eNewFirm">Yeni müşterinin adı</label><input id="eNewFirm" maxlength="80"></div>' +
+    '<div class="field"><label class="label" for="eFolder">Klasör</label><select id="eFolder">' + folderOptions(f.firm_id, f.folder_id) + '</select></div>' +
+    '<div class="grid2"><div class="field"><label class="label" for="eMadde">İş kolu</label><input id="eMadde" list="isList" value="' + esc(isKolu(f.madde)) + '" placeholder="Listeden seçin ya da yazın"><datalist id="isList">' + isKollari().map(function(t){ return '<option value="' + esc(t) + '">' }).join("") + '</datalist></div>' +
+    '<div class="field"><label class="label" for="eTur">İzin türü</label><input id="eTur" list="turList" value="' + esc(f.tur || "") + '" placeholder="Mezarlık, maden…"><datalist id="turList">' + TURLER.map(function(t){ return '<option value="' + esc(t) + '">' }).join("") + '</datalist></div></div>' +
+    '<div class="grid2"><div class="field"><label class="label" for="eIl">İl</label><input id="eIl" value="' + esc(f.il || "") + '"></div><div class="field"><label class="label" for="eIlce">İlçe / köy</label><input id="eIlce" value="' + esc(f.ilce || "") + '"></div></div>' +
+    '<div class="grid2"><div class="field"><label class="label" for="eIsl">Orman İşletme Müdürlüğü</label><input id="eIsl" value="' + esc(f.isletme || "") + '"></div><div class="field"><label class="label" for="eSef">İşletme Şefliği</label><input id="eSef" value="' + esc(f.sefi || "") + '"></div></div>' +
+    (isNew ? '<div class="field"><label class="label" for="eKonum">Dosya şu an nerede</label><input id="eKonum" value="Bizde (büroda)"></div>' +
+      '<div class="field"><label class="label" for="eList">Aşama listesi</label><select id="eList">' + (S.lists.length ? S.lists : DEFAULT_LISTS).map(function(l, i){ return '<option value="' + i + '">' + esc(l.ad) + ' (' + (l.asamalar || []).length + ')</option>' }).join("") + '<option value="__custom">Bu dosyaya özel yazacağım…</option></select></div>' +
+      '<div class="field" id="eCustomBox" hidden><label class="label" for="eAsama">Aşamalar (her satıra bir)</label><textarea id="eAsama" rows="7"></textarea></div>'
+      : '<div class="field"><label class="label" for="eAsama">Bu dosyanın aşamaları (her satıra bir)</label><textarea id="eAsama" rows="7">' + esc((f.asamalar || []).join("\n")) + '</textarea></div>') +
+    '<div class="grid2"><div class="field"><label class="label" for="eUcret">Hizmet bedeli (₺)</label><input id="eUcret" inputmode="decimal" value="' + esc(priv.ucret != null ? priv.ucret : "") + '"></div><div class="field"><label class="label" for="eOdenen">Alınan (₺)</label><input id="eOdenen" inputmode="decimal" value="' + esc(priv.odenen != null ? priv.odenen : "") + '"></div></div>' +
+    '<div class="field"><label class="label" for="eOzel">Özel not (firmaya görünmez)</label><textarea id="eOzel">' + esc(priv.ozel_not || "") + '</textarea></div>' +
+    '<p class="err" id="eErr"></p><button type="submit" class="primary">' + (isNew ? "Dosyayı oluştur" : "Kaydet") + '</button></form>';
+}
+function islemForm(f){
+  var n = (f.asamalar || []).length, next = isStaff() ? Math.min((f.aktif || 0) + (f.durum === "tamam" ? 0 : 1), n - 1) : (f.aktif || 0);
+  return '<form id="islemForm"><div class="ph"><h2>İşlem / aşama gir</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    '<div class="field"><label class="label" for="iAsama">Aşama</label><select id="iAsama">' + (f.asamalar || []).map(function(a, i){ return '<option value="' + i + '"' + (i === next ? " selected" : "") + '>' + (i + 1) + '. ' + esc(a) + (i === (f.aktif || 0) ? " (şu anki)" : "") + '</option>' }).join("") + '</select></div>' +
+    '<div class="field"><label class="label" for="iTarih">Tarih</label><input id="iTarih" type="date" value="' + today() + '"></div>' +
+    '<div class="field"><label class="label" for="iKonum">Dosya şu an nerede</label><input id="iKonum" value="' + esc(f.konum || "") + '" placeholder="Örn. Konya OBM kadastro şube, Hadim şefliği, bizde"></div>' +
+    '<div class="field"><label class="label" for="iNot">Açıklama</label><textarea id="iNot" placeholder="Örn. Şeflik arazi tespiti için gün verdi; 2026/451 sayılı yazı geldi"></textarea></div>' +
+    (f.durum === "iade" && isStaff() ? '<label class="check"><input type="checkbox" id="iResent" checked> Düzeltildi, kuruma tekrar gönderildi (iade kapanır)</label>' : '') +
+    (isStaff() && f.paylas && f.firm_id ? '<label class="check"><input type="checkbox" id="iWa" checked> Kaydettikten sonra müşteriye WhatsApp mesajı hazırla</label>' : '') +
+    (isStaff() ? '<label class="check"><input type="checkbox" id="iPub" checked> Müşteri bu kaydı görsün</label><label class="check"><input type="checkbox" id="iDone"> Dosya tamamlandı</label>' : '<p class="hint">Kaydınız büroya hemen ulaşır.</p>') +
+    '<p class="err" id="iErr"></p><button type="submit" class="primary">Kaydet</button></form>';
+}
+function durumForm(f){
+  return '<div class="ph"><h2>Dosyanın durumu</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div><div style="display:grid;gap:8px">' +
+    Object.keys(DURUM).map(function(k){ return '<button type="button" class="choice" data-setdurum="' + k + '"' + (f.durum === k ? ' style="border-color:var(--accent);background:var(--soft)"' : '') + '><b style="font-size:1rem">' + esc(DURUM[k]) + '</b></button>' }).join("") + '</div>';
+}
+function iadeForm(f){
+  return '<form id="iadeForm"><div class="ph"><h2>Kurum iade etti</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    '<div class="grid2"><div class="field"><label class="label" for="rTarih">İade tarihi</label><input id="rTarih" type="date" value="' + today() + '"></div>' +
+    '<div class="field"><label class="label" for="rKurum">İade eden kurum</label><input id="rKurum" value="' + esc(f.durum === "iade" ? "" : (f.konum || "")) + '" placeholder="Örn. Konya OBM"></div></div>' +
+    '<div class="field"><label class="label" for="rNeden">İade nedeni</label><textarea id="rNeden" required placeholder="Örn. Koordinat özet listesinde hata; muvafakat yazısı eksik"></textarea></div>' +
+    '<div class="field"><label class="label" for="rKonum">Dosya şimdi nerede</label><input id="rKonum" value="Bizde (düzeltmede)"></div>' +
+    '<div class="field"><label class="label" for="rAsama">Dosya hangi aşamaya döndü</label><select id="rAsama"><option value="">Aşama aynı kalsın (' + esc(stageName(f)) + ')</option>' + (f.asamalar || []).map(function(a, i){ return i < (f.aktif || 0) ? '<option value="' + i + '">' + (i + 1) + '. ' + esc(a) + '</option>' : '' }).join("") + '</select></div>' +
+    (isStaff() ? '<label class="check"><input type="checkbox" id="rPub" checked> Müşteri bu kaydı görsün</label>' : '') +
+    (isStaff() && f.paylas && f.firm_id ? '<label class="check"><input type="checkbox" id="rWa" checked> Kaydettikten sonra müşteriye WhatsApp mesajı hazırla</label>' : '') +
+    '<p class="err" id="rErr"></p><button type="submit" class="primary">İadeyi kaydet</button></form>';
+}
+function docForm(files){
+  return '<form id="docForm"><div class="ph"><h2>Belge ekle</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div><p class="hint">' + files.length + ' dosya: ' + esc(files.map(function(x){ return x.name }).join(", ")) + '</p>' +
+    '<div class="grid2"><div class="field"><label class="label" for="dTur">Belge türü</label><select id="dTur">' + BELGE_TUR.map(function(t){ return '<option>' + esc(t) + '</option>' }).join("") + '</select></div><div class="field"><label class="label" for="dTarih">Tarih</label><input id="dTarih" type="date" value="' + today() + '"></div></div>' +
+    '<div class="field"><label class="label" for="dNot">Not</label><input id="dNot" placeholder="Örn. OBM eksiklik yazısı, sayı 2026/451"></div>' +
+    (isStaff() ? '<label class="check"><input type="checkbox" id="dPub" checked> Müşteri bu belgeleri görsün</label>' : '') + '<button type="submit" class="primary">Yükle</button></form>';
+}
+function firmForm(x){
+  return '<form id="firmForm"><div class="ph"><h2>' + (x.id ? "Müşteriyi düzenle" : "Yeni müşteri") + '</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    '<div class="field"><label class="label" for="fAd">Müşteri adı (firma / kurum)</label><input id="fAd" required maxlength="80" value="' + esc(x.ad || "") + '"></div>' +
+    '<div class="field"><label class="label" for="fYet">Yetkili kişi</label><input id="fYet" value="' + esc(x.yetkili || "") + '"></div>' +
+    '<div class="grid2"><div class="field"><label class="label" for="fTel">Telefon</label><input id="fTel" inputmode="tel" value="' + esc(x.tel || "") + '"></div><div class="field"><label class="label" for="fEp">E-posta</label><input id="fEp" inputmode="email" value="' + esc(x.eposta || "") + '"></div></div>' +
+    '<button type="submit" class="primary">' + (x.id ? "Kaydet" : "Müşteriyi ekle") + '</button>' +
+    (x.id && isAdmin() ? '<button type="button" class="danger" data-a="delFirm" data-id="' + esc(x.id) + '">Firmayı sil</button><p class="hint">Silinen firmanın dosyaları kalır, firma bilgisi boşalır; firma kullanıcıları dosyaları görmez olur.</p>' : '') + '</form>';
+}
+function orgsSheet(){
+  return '<div class="ph"><h2>Bürolarım</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    (S.mems.length ? '<div style="display:grid;gap:8px">' + S.mems.map(function(m){ return '<button type="button" class="orgrow" data-org="' + esc(m.org_id) + '"' + (S.org && S.org.org_id === m.org_id ? ' aria-current="true"' : '') + '><b>' + esc(m.orgs.ad) + '</b><span class="role ' + m.role + '">' + ROL[m.role] + '</span></button>' }).join("") + '</div>' : '') +
+    joinFormHTML() +
+    orgFormHTML();
+}
+
+/* ================= Eylemler ================= */
+function curFile(){ return route.s === "file" ? ((S.det && S.det.file) || byId(S.files, route.id)) : null }
+function inviteText(code, roleName, firm, yetki){
+  if(roleName === "misafir") return (orgName() ? orgName() + " · " : "") + "İzin Takip paylaşım kodu: " + code + "\n\n“" + (firm || "Dosya") + "” dosyası sizinle paylaşıldı. Dosyanın hangi aşamada ve nerede olduğunu, işlem geçmişini ve belgelerini görebilirsiniz" + (yetki === "islem" ? "; işlem ve belge de ekleyebilirsiniz." : ".") + "\nİzin Takip uygulamasını açın, kayıt olun ya da giriş yapın, “Davet koduyla katıl” bölümüne kodu yazın.";
+  return (orgName() ? orgName() + " · " : "") + "İzin Takip davet kodunuz: " + code + "\n\n" +
+    (roleName === "firma" ? (firm ? firm + " adına " : "") + "izin dosyalarınızın hangi aşamada ve nerede olduğunu görebilir, işlem ve belge ekleyebilirsiniz." : "Büro ekibine " + ROL[roleName].toLocaleLowerCase("tr") + " olarak katılırsınız.") +
+    "\nİzin Takip uygulamasını açın, kayıt olun ya da giriş yapın, “Davet koduyla katıl” bölümüne kodu yazın.";
+}
+function upsertPriv(fileId, v){
+  return q(sb.from("file_private").upsert({file_id:fileId, org_id:orgId(), ucret:v.ucret, odenen:v.odenen, ozel_not:v.ozel_not}, {onConflict:"file_id"}));
+}
+function addEvent(fileId, ev){ ev.file_id = fileId; return q(sb.from("events").insert(ev)) }
+function refreshFileAfter(fileId){ return loadFiles().then(function(){ if(route.s === "file" && route.id === fileId) return loadDetail(fileId, true); render() }) }
+function openDoc(id){
+  var d = S.det && byId(S.det.docs || [], id); if(!d) return;
+  busy(true, "Belge açılıyor…");
+  if(/^image\//.test(d.tip || "") || !IS_APP){
+    sb.storage.from("belgeler").createSignedUrl(d.path, 3600).then(function(r){
+      busy(false);
+      if(r.error || !r.data){ toast(errMsg(r.error)); return }
+      if(/^image\//.test(d.tip || "")){ $("viewerImg").src = r.data.signedUrl; $("viewer").hidden = false; return }
+      var w = null; try{ w = window.open(r.data.signedUrl, "_blank", "noopener") }catch(e){}
+      if(!w){ var a = document.createElement("a"); a.href = r.data.signedUrl; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove() }
+    });
+    return;
+  }
+  sb.storage.from("belgeler").download(d.path).then(function(r){ busy(false); if(r.error || !r.data){ toast(errMsg(r.error)); return } shareFiles([{name:d.ad, blob:r.data}], {subject:d.ad}) });
+}
+function docMenu(id){
+  var d = S.det && byId(S.det.docs || [], id); if(!d) return;
+  openSheet('<div class="ph"><h2 style="overflow-wrap:anywhere">' + esc(d.ad) + '</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    (isStaff() ? '<div class="field"><label class="label" for="dmTur">Belge türü</label><select id="dmTur" data-docid="' + esc(id) + '">' + BELGE_TUR.map(function(t){ return '<option' + (d.tur === t ? " selected" : "") + '>' + esc(t) + '</option>' }).join("") + '</select></div>' +
+    '<label class="check"><input type="checkbox" id="dmPub" data-docid="' + esc(id) + '"' + (d.pub ? " checked" : "") + '> Müşteri bu belgeyi görsün</label>' : '') +
+    '<button type="button" class="danger" data-a="docDel" data-id="' + esc(id) + '">Belgeyi sil</button>');
+}
+
+function telWa(t){ var d = String(t || "").replace(/\D/g, ""); if(!d) return ""; if(d.length === 10 && d[0] === "5") d = "90" + d; else if(d.length === 11 && d[0] === "0") d = "9" + d; return d }
+function notifyCustomer(f, line){
+  var firm = byId(S.firms, f.firm_id), msg = (orgName() ? orgName() + " · " : "") + (firm ? firm.ad + " · " : "") + f.ad + (f.no ? " (" + f.no + ")" : "") + "\n" + line + "\nAyrıntılar İzin Takip uygulamasında.";
+  var tel = firm ? telWa(firm.tel) : "";
+  ui.waMsg = msg;
+  openSheet('<div class="ph"><h2>Müşteriye haber ver</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    '<textarea id="waText" rows="6" style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px">' + esc(msg) + '</textarea>' +
+    '<div class="btnrow">' + (IS_APP || !tel ? '<button type="button" class="primary" data-a="waShare">' + (IS_APP ? "WhatsApp / paylaş" : "Mesajı kopyala") + '</button>' : '<a class="primary" style="text-align:center;text-decoration:none" target="_blank" rel="noopener" id="waLink" href="https://wa.me/' + tel + '?text=' + encodeURIComponent(msg) + '">WhatsApp ile gönder</a><button type="button" class="ghost" data-a="waShare">Kopyala</button>') + '</div>' +
+    (!tel && !IS_APP ? '<p class="hint">Müşterinin telefonunu (Müşteriler › Düzenle) girerseniz mesaj doğrudan WhatsApp\'ta o numaraya açılır.</p>' : '<p class="hint">Mesajı göndermeden önce düzenleyebilirsiniz.</p>'));
+}
+function bellSheet(){
+  var list = S.notifs.slice(0, 40);
+  var perm = window.Notification && Notification.permission === "default" && !IS_APP;
+  return '<div class="ph"><h2>Bildirimler</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    (perm ? '<button type="button" class="ghost" data-a="notifPerm">Uygulama arka plandayken de bildirim göster</button>' : '') +
+    (list.length ? '<div>' + list.map(function(e){ var f = byId(S.files, e.file_id), isNew = new Date(e.created_at).getTime() > S.seen;
+      return '<button type="button" class="nrow' + (isNew ? ' new' : '') + '" data-open="' + esc(e.file_id) + '"><b>' + esc(f ? f.ad : "Dosya") + '</b><span>' + esc(evText(e)) + '</span><small>' + esc(e.user_ad || "") + (e.rol === "firma" ? " (müşteri)" : e.rol === "misafir" ? " (paylaşılan kişi)" : "") + ' · ' + fmt(e.created_at) + ' ' + String(e.created_at).slice(11, 16) + '</small></button>' }).join("") + '</div>'
+      : '<p class="hint">Son 30 günde başkalarının girdiği bir kayıt yok. Ekibiniz, müşteriniz ya da dosya paylaştığınız biri işlem girdiğinde burada görünür.</p>');
+}
+function shareSheet(f){
+  return '<form id="shareForm"><div class="ph"><h2>Dosyayı paylaş</h2><button type="button" class="ghost" data-a="closeSheet">Kapat</button></div>' +
+    '<p class="hint">“' + esc(f.ad) + '” için bir paylaşım kodu oluşur. Kodu giren kişi yalnızca bu dosyayı görür; müşterinizin diğer dosyalarını, ücreti, özel notları ve “büro içi” kayıtları göremez. Kod 30 gün geçerli, 10 kişiye kadar kullanılabilir.</p>' +
+    '<div class="field"><label class="label" for="shY">Yetki</label><select id="shY"><option value="gor">Sadece görsün</option><option value="islem">İşlem ve belge de girebilsin</option></select></div>' +
+    '<button type="submit" class="primary">Kodu oluştur ve gönder</button></form>';
+}
+
+/* ================= Olaylar ================= */
+function arm(btn, txt){ if(btn.classList.contains("armed")) return true; btn.classList.add("armed"); btn.textContent = txt; return false }
+document.addEventListener("click", function(e){
+  var t = e.target;
+  var ov = t.closest("[data-ov]"); if(ov && t === ov){ closeSheet(); return }
+  var g = t.closest("[data-go]"); if(g){ go(g.getAttribute("data-go")); return }
+  var cu = t.closest("[data-cust]"), cb = t.closest("button,a,input,select,label"); if(cu && cb && cb !== cu && !cb.hasAttribute("data-cust") && cu.contains(cb)) cu = null;
+  if(cu){ if(!isStaff()){ go("home", {folder:cu.getAttribute("data-folder") || null}); return } go("cust", {id:cu.getAttribute("data-cust"), folder:cu.getAttribute("data-folder") || null}); return }
+  var o = t.closest("[data-open]"); if(o){ var from = route.s === "cust" || (!isStaff() && route.folder) ? {s:route.s, id:route.id, folder:route.folder} : null; go("file", {id:o.getAttribute("data-open"), from:from ? "cust" : "", back:from}); return }
+  var dc = t.closest("[data-doc]"); if(dc){ openDoc(dc.getAttribute("data-doc")); return }
+  var dm = t.closest("[data-docmenu]"); if(dm){ docMenu(dm.getAttribute("data-docmenu")); return }
+  var og = t.closest("[data-org]"); if(og){ var m = S.mems.filter(function(x){ return x.org_id === og.getAttribute("data-org") })[0]; closeSheet(); route = {s:"home"}; selectOrg(m); return }
+  var ef = t.closest("[data-editfirm]"); if(ef){ var fm = byId(S.firms, ef.getAttribute("data-editfirm")); if(fm){ ui.firmEdit = fm.id; openSheet(firmForm(fm)) } return }
+  var ff = t.closest("[data-filterfirm]"); if(ff){ filt = {q:"", firma:ff.getAttribute("data-filterfirm"), durum:"", asama:""}; go("home"); return }
+  var ivf = t.closest("[data-invfirm]");
+  if(ivf){ var fid = ivf.getAttribute("data-invfirm"), firm = byId(S.firms, fid);
+    var ex = S.invites.filter(function(i){ return i.firm_id === fid && i.uses < i.max_uses && new Date(i.expires_at) > new Date() })[0];
+    if(ex){ shareText(inviteText(ex.code, "firma", firm && firm.ad)); return }
+    busy(true, "Kod oluşturuluyor…");
+    q(sb.rpc("create_invite", {p_org:orgId(), p_role:"firma", p_firm:fid})).then(function(code){ busy(false); return loadTeam().then(function(){ render(); shareText(inviteText(code, "firma", firm && firm.ad)) }) })["catch"](function(err){ busy(false); toast(errMsg(err)) });
+    return }
+  var si = t.closest("[data-sendinv]"); if(si){ var iv = S.invites.filter(function(i){ return i.code === si.getAttribute("data-sendinv") })[0]; if(iv) shareText(inviteText(iv.code, iv.role, iv.role === "misafir" ? (byId(S.files, iv.file_id) || {}).ad : firmName(iv.firm_id), iv.yetki)); return }
+  var idl = t.closest("[data-invdel]"); if(idl){ if(!arm(idl, "İptal")) return; q(sb.from("invites").delete().eq("code", idl.getAttribute("data-invdel"))).then(loadTeam).then(function(){ render(); toast("Davet iptal edildi") })["catch"](function(err){ toast(errMsg(err)) }); return }
+  var shd = t.closest("[data-sharedel]"); if(shd){ if(!arm(shd, "Kaldır")) return; q(sb.from("file_shares").delete().eq("file_id", route.id).eq("user_id", shd.getAttribute("data-sharedel"))).then(function(){ toast("Paylaşım kaldırıldı"); return loadDetail(route.id, true) })["catch"](function(err){ toast(errMsg(err)) }); return }
+  var ocs = t.closest("[data-ocsend]"); if(ocs){ shareText("İzin Takip büro açma kodunuz: " + ocs.getAttribute("data-ocsend") + "\n\nİzin Takip uygulamasını açın, kayıt olun; “Yeni büro aç” bölümüne büronuzun adını ve bu kodu yazın. Kod bir kez kullanılabilir."); return }
+  var ocd = t.closest("[data-ocdel]"); if(ocd){ if(!arm(ocd, "Sil")) return; q(sb.rpc("delete_org_code", {p_code:ocd.getAttribute("data-ocdel")})).then(loadOrgCodes).then(render)["catch"](function(err){ toast(errMsg(err)) }); return }
+  var md = t.closest("[data-memdel]"); if(md){ if(!arm(md, "Çıkar")) return; q(sb.from("members").delete().eq("org_id", orgId()).eq("user_id", md.getAttribute("data-memdel"))).then(loadTeam).then(function(){ render(); toast("Kişi bürodan çıkarıldı") })["catch"](function(err){ toast(errMsg(err)) }); return }
+  var sd = t.closest("[data-setdurum]");
+  if(sd){ var f0 = curFile(); var k = sd.getAttribute("data-setdurum"); closeSheet(); if(f0 && f0.durum !== k){ busy(true, "Kaydediliyor…"); addEvent(f0.id, {tip:"durum", durum:k, tarih:today(), pub:true}).then(function(){ busy(false); toast("Durum güncellendi"); return refreshFileAfter(f0.id) })["catch"](function(err){ busy(false); toast(errMsg(err)) }) } return }
+  var evd = t.closest("[data-evdel]"); if(evd){ e.preventDefault(); var f1 = curFile(); if(f1){ var ev = (f1.evrak || []).slice(); ev.splice(+evd.getAttribute("data-evdel"), 1); q(sb.from("files").update({evrak:ev}).eq("id", f1.id)).then(function(){ return refreshFileAfter(f1.id) })["catch"](function(err){ toast(errMsg(err)) }) } return }
+  var evx = t.closest("[data-evdelete]"); if(evx){ if(!arm(evx, "eminim, sil")) return; q(sb.from("events").delete().eq("id", evx.getAttribute("data-evdelete"))).then(function(){ toast("Kayıt silindi"); return loadDetail(route.id, true) })["catch"](function(err){ toast(errMsg(err)) }); return }
+  var ld = t.closest("[data-listdel]"); if(ld){ if(!arm(ld, "Eminim, sil")) return; q(sb.from("stage_lists").delete().eq("id", ld.getAttribute("data-listdel"))).then(loadLists).then(function(){ render(); toast("Liste silindi") })["catch"](function(err){ toast(errMsg(err)) }); return }
+  var a = t.closest("[data-a]"); if(!a) return;
+  var act = a.getAttribute("data-a"), f = curFile();
+  switch(act){
+    case "menu": openDrawer(); break;
+    case "closeSheet": closeSheet(); break;
+    case "closeViewer": $("viewer").hidden = true; break;
+    case "reload": location.reload(); break;
+    case "authTab": ui.reg = a.getAttribute("data-v") === "1"; render(); break;
+    case "orgs": openSheet(orgsSheet()); break;
+    case "install": closeSheet(); if(installEvt){ installEvt.prompt(); installEvt.userChoice.then(function(){ installEvt = null }) } break;
+    case "loadOc": loadOrgCodes().then(render); break;
+    case "bell": openSheet(bellSheet()); S.seen = Date.now(); lsSet("izin-gordum-" + orgId(), String(S.seen)); setTimeout(render, 50); break;
+    case "notifPerm": try{ Notification.requestPermission().then(function(r){ toast(r === "granted" ? "Bildirimler açıldı" : "Bildirim izni verilmedi"); closeSheet() }) }catch(e){} break;
+    case "shareFile": if(f) openSheet(shareSheet(f)); break;
+    case "waShare": var wt = $("waText") ? $("waText").value : ui.waMsg; closeSheet(); shareText(wt); break;
+    case "fDurum": filt.durum = a.getAttribute("data-v"); render(); break;
+    case "fAsama": filt.asama = filt.asama === a.getAttribute("data-v") ? "" : a.getAttribute("data-v"); if(filt.asama) filt.durum = "aktif"; render(); break;
+    case "clearF": filt = {q:"", firma:"", durum:"", asama:""}; render(); break;
+    case "newFile": ui.newFile = true; openSheet(fileForm({no:nextNo()}, true)); break;
+    case "editFile": if(f){ ui.newFile = false; openSheet(fileForm(f, false, S.det && S.det.priv)) } break;
+    case "islem": if(f) openSheet(islemForm(f)); break;
+    case "iade": if(f) openSheet(iadeForm(f)); break;
+    case "durum": if(f) openSheet(durumForm(f)); break;
+    case "addDoc": if(f) pickFiles("*/*", true, function(fs){ var big = fs.filter(function(x){ return x.size > 50*1048576 })[0]; if(big){ toast(big.name + " 50 MB'tan büyük; küçültüp ekleyin"); return } ui.pendingDocs = fs; openSheet(docForm(fs)) }); break;
+    case "docDel":
+      if(!arm(a, "Eminim, sil")) break;
+      var dd = S.det && byId(S.det.docs || [], a.getAttribute("data-id")); if(!dd) break;
+      closeSheet(); busy(true, "Siliniyor…");
+      sb.storage.from("belgeler").remove([dd.path]).then(function(){ return q(sb.from("docs").delete().eq("id", dd.id)) }).then(function(){ busy(false); toast("Belge silindi"); return loadDetail(route.id, true) })["catch"](function(err){ busy(false); toast(errMsg(err)) });
+      break;
+    case "delFile":
+      if(!ui.delArm){ ui.delArm = true; render(); var btn = $("delFileBtn"); if(btn){ btn.classList.add("armed"); btn.scrollIntoView({block:"center"}) } break }
+      if(f){ busy(true, "Siliniyor…"); var paths = ((S.det && S.det.docs) || []).map(function(x){ return x.path });
+        (paths.length ? sb.storage.from("belgeler").remove(paths) : Promise.resolve()).then(function(){ return q(sb.from("files").delete().eq("id", f.id)) }).then(function(){ busy(false); toast("Dosya silindi"); return loadFiles() }).then(function(){ go("home") })["catch"](function(err){ busy(false); toast(errMsg(err)) }) }
+      break;
+    case "newFirm": ui.firmEdit = null; openSheet(firmForm({})); break;
+    case "upFolder": var cf = folderOf(route.folder); go("cust", {id:route.id, folder:cf ? cf.parent_id || null : null}); break;
+    case "backToFolder": var bk = route.back || {}; if(bk.s === "cust") go("cust", {id:bk.id, folder:bk.folder || null}); else go("home", {folder:bk.folder || null}); break;
+    case "newFolder": ui.folderEdit = null; var pth = folderPath(route.folder).map(function(x){ return x.ad }); openSheet(folderForm({parentName:[firmName(route.id)].concat(pth).join(" › ")})); break;
+    case "editFolder": var fo = folderOf(route.folder); if(fo){ ui.folderEdit = fo.id; openSheet(folderForm(fo)) } break;
+    case "delFolder":
+      if(!arm(a, "Eminim, klasörü sil")) break;
+      var dfo = folderOf(ui.folderEdit); if(!dfo) break;
+      q(sb.from("folders").delete().eq("id", dfo.id)).then(function(){ closeSheet(); return Promise.all([loadFolders(), loadFiles()]) }).then(function(){ toast("Klasör silindi"); go("cust", {id:dfo.firm_id, folder:dfo.parent_id || null}) })["catch"](function(err){ toast(errMsg(err)) });
+      break;
+    case "newFileHere": ui.newFile = true; openSheet(fileForm({no:nextNo(), firm_id:route.id, folder_id:route.folder || null}, true)); break;
+    case "delFirm":
+      if(!arm(a, "Eminim, firmayı sil")) break;
+      q(sb.from("firms").delete().eq("id", a.getAttribute("data-id"))).then(function(){ closeSheet(); return Promise.all([loadFirms(), loadFiles()]) }).then(function(){ render(); toast("Firma silindi") })["catch"](function(err){ toast(errMsg(err)) });
+      break;
+    case "invStaff":
+      var rl = a.getAttribute("data-v"); busy(true, "Kod oluşturuluyor…");
+      q(sb.rpc("create_invite", {p_org:orgId(), p_role:rl, p_firm:null})).then(function(code){ busy(false); return loadTeam().then(function(){ render(); shareText(inviteText(code, rl)) }) })["catch"](function(err){ busy(false); toast(errMsg(err)) });
+      break;
+    case "seedLists":
+      q(sb.from("stage_lists").insert(DEFAULT_LISTS.map(function(l, i){ return {ad:l.ad, asamalar:l.asamalar, sira:i} }))).then(loadLists).then(function(){ render(); toast("Örnek listeler eklendi") })["catch"](function(err){ toast(errMsg(err)) });
+      break;
+    case "listNew":
+      q(sb.from("stage_lists").insert({ad:"Yeni liste", asamalar:["Talep alındı","Dosya hazır","Kuruma teslim","Onay"], sira:S.lists.length})).then(loadLists).then(function(){ render() })["catch"](function(err){ toast(errMsg(err)) });
+      break;
+    case "leaveOrg":
+      if(!arm(a, "Eminim, ayrıl")) break;
+      q(sb.from("members").delete().eq("org_id", orgId()).eq("user_id", S.user.id)).then(function(){ lsSet("izin-org", null); toast("Bürodan ayrıldınız"); route = {s:"home"}; return loadMe() })["catch"](function(err){ toast(errMsg(err)) });
+      break;
+    case "logout": sb.auth.signOut().then(function(){ S.user = null; S.mems = []; S.org = null; route = {s:"home"}; render() }); break;
+    case "resetServer": lsSet("izin-sunucu", null); location.reload(); break;
+  }
+});
+document.addEventListener("input", function(e){
+  if(e.target.id === "waText"){ var wl = $("waLink"); if(wl) wl.href = wl.href.split("?")[0] + "?text=" + encodeURIComponent(e.target.value); return }
+  if(e.target.id === "fq"){ filt.q = e.target.value; clearTimeout(window.__qT); window.__qT = setTimeout(function(){ render(); var el = $("fq"); if(el){ el.focus(); try{ el.setSelectionRange(el.value.length, el.value.length) }catch(x){} } }, 220) }
+});
+document.addEventListener("change", function(e){
+  var t = e.target, f = curFile();
+  if(t.id === "ffirma"){ filt.firma = t.value; render() }
+  else if(t.id === "eFirma"){ $("eNewFirmBox").hidden = t.value !== "__new"; $("eFolder").innerHTML = folderOptions(t.value === "__new" ? "" : t.value, null) }
+  else if(t.id === "eList"){ $("eCustomBox").hidden = t.value !== "__custom" }
+  else if(t.id === "payChk" && f){ var val = t.checked; q(sb.from("files").update({paylas:val}).eq("id", f.id)).then(function(){ toast(val ? "Firma artık görüyor" : "Firmadan gizlendi"); return refreshFileAfter(f.id) })["catch"](function(err){ t.checked = !val; toast(errMsg(err)) }) }
+  else if(t.hasAttribute("data-ev") && f){ var ev = (f.evrak || []).map(function(x){ return {ad:x.ad, ok:x.ok} }); ev[+t.getAttribute("data-ev")].ok = t.checked; q(sb.from("files").update({evrak:ev}).eq("id", f.id)).then(function(){ return refreshFileAfter(f.id) })["catch"](function(err){ toast(errMsg(err)) }) }
+  else if(t.id === "dmTur" || t.id === "dmPub"){ var patch = t.id === "dmTur" ? {tur:t.value} : {pub:t.checked}; q(sb.from("docs").update(patch).eq("id", t.getAttribute("data-docid"))).then(function(){ return loadDetail(route.id, true) })["catch"](function(err){ toast(errMsg(err)) }) }
+  else if(t.hasAttribute("data-shareyetki")){ q(sb.from("file_shares").update({yetki:t.value}).eq("file_id", route.id).eq("user_id", t.getAttribute("data-shareyetki"))).then(function(){ toast("Yetki güncellendi") })["catch"](function(err){ toast(errMsg(err)) }) }
+  else if(t.hasAttribute("data-memrole")){ q(sb.from("members").update({role:t.value}).eq("org_id", orgId()).eq("user_id", t.getAttribute("data-memrole"))).then(loadTeam).then(function(){ render(); toast("Rol güncellendi") })["catch"](function(err){ toast(errMsg(err)); loadTeam().then(render) }) }
+});
+document.addEventListener("submit", function(e){
+  e.preventDefault();
+  var id = e.target.id, v = function(x){ var el = $(x); return el ? (el.type === "checkbox" ? el.checked : el.value) : "" };
+  var f = curFile();
+  var num = function(s){ s = String(s || "").trim().replace(/\./g, "").replace(",", "."); return s && !isNaN(+s) ? +s : null };
+  if(id === "srvForm"){
+    var url = v("srvUrl").trim().replace(/\/+$/, ""), key = v("srvKey").trim().replace(/\s+/g, "");
+    if(!/^https:\/\/[^\s]+$/.test(url) || key.length < 40){ $("srvErr").textContent = "Adresi https:// ile, anahtarı eksiksiz yapıştırın."; return }
+    lsSet("izin-sunucu", JSON.stringify({url:url, key:key})); location.reload();
+  }
+  else if(id === "authForm"){
+    var mail = v("auMail").trim(), pw = v("auPw"), err = $("auErr"); err.textContent = "";
+    busy(true, ui.reg ? "Hesap oluşturuluyor…" : "Giriş yapılıyor…");
+    var p = ui.reg ? sb.auth.signUp({email:mail, password:pw, options:{data:{ad:v("auAd").trim()}}}) : sb.auth.signInWithPassword({email:mail, password:pw});
+    p.then(function(r){ busy(false);
+      if(r.error){ err.textContent = errMsg(r.error); return }
+      if(ui.reg && !r.data.session){ err.style.color = "var(--ok)"; err.textContent = "Hesap oluşturuldu. E-postanıza gelen onay bağlantısına tıklayın, sonra giriş yapın."; ui.reg = false; return }
+    });
+  }
+  else if(id === "joinForm"){
+    var code = v("joinCode").trim().toUpperCase().replace(/[^A-Z0-9]/g, ""); if(code.length === 8) code = code.slice(0, 4) + "-" + code.slice(4);
+    if(!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)){ $("joinErr").textContent = "Kod ABCD-1234 biçiminde 8 karakterdir."; return }
+    busy(true, "Katılınıyor…");
+    q(sb.rpc("join_invite", {p_code:code})).then(function(org){ busy(false); closeSheet(); lsSet("izin-org", org); route = {s:"home"}; toast("Büroya katıldınız"); return loadMe() })["catch"](function(err){ busy(false); var m = errMsg(err); var el = $("joinErr"); if(el) el.textContent = m; else toast(m) });
+  }
+  else if(id === "orgForm"){
+    var oad = v("orgAd").trim(); if(!oad) return;
+    busy(true, "Büro açılıyor…");
+    var oc = v("orgCode").trim().toUpperCase().replace(/[^A-Z0-9]/g, ""); if(oc.length === 8) oc = oc.slice(0, 4) + "-" + oc.slice(4);
+    q(sb.rpc("create_org", {p_ad:oad, p_code:oc || null})).then(function(org){ busy(false); closeSheet(); lsSet("izin-org", org); route = {s:"home"}; toast("Büro açıldı. Ekip ve davetler ekranından çalışanlarınızı ekleyin."); return loadMe() })["catch"](function(err){ busy(false); var el = $("orgErr"); if(el) el.textContent = errMsg(err); else toast(errMsg(err)) });
+  }
+  else if(id === "fileForm"){
+    var isNew = !!ui.newFile, ad = v("eAd").trim(), ee = $("eErr");
+    if(!ad){ ee.textContent = "Proje adını yazın."; return }
+    var as;
+    if(isNew){ var li = v("eList"); if(li === "__custom") as = v("eAsama").split("\n").map(function(s){ return s.trim() }).filter(Boolean); else as = ((S.lists.length ? S.lists : DEFAULT_LISTS)[+li] || DEFAULT_LISTS[0]).asamalar.slice() }
+    else as = v("eAsama").split("\n").map(function(s){ return s.trim() }).filter(Boolean);
+    if(!as.length){ ee.textContent = "En az bir aşama olmalı."; return }
+    var fsel = v("eFirma"), firmP;
+    if(fsel === "__new"){ var nf = v("eNewFirm").trim(); if(!nf){ ee.textContent = "Yeni firmanın adını yazın."; return } firmP = q(sb.from("firms").insert({org_id:orgId(), ad:nf}).select().single()).then(function(r){ S.firms.push(r); return r.id }) }
+    else firmP = Promise.resolve(fsel || null);
+    var folderSel = v("eFolder") || null;
+    var ikv = v("eMadde").trim();
+    if(ikv && isAdmin()){ var cur = (S.org.orgs.is_kollari && S.org.orgs.is_kollari.length) ? S.org.orgs.is_kollari.slice() : DEFAULT_ISKOLU.slice(); if(cur.indexOf(ikv) < 0){ cur.push(ikv); S.org.orgs.is_kollari = cur; sb.from("orgs").update({is_kollari:cur}).eq("id", orgId()).then(function(){}) } }
+    var row = {no:v("eNo").trim(), kurum_no:v("eKurum").trim(), ad:ad, madde:ikv, tur:v("eTur").trim(), il:v("eIl").trim(), ilce:v("eIlce").trim(), isletme:v("eIsl").trim(), sefi:v("eSef").trim(), asamalar:as};
+    var priv = {ucret:num(v("eUcret")), odenen:num(v("eOdenen")), ozel_not:v("eOzel")};
+    busy(true, "Kaydediliyor…");
+    firmP.then(function(firmId){
+      row.firm_id = firmId; if(!firmId) row.paylas = false;
+      var fo = folderOf(folderSel); row.folder_id = fo && fo.firm_id === firmId ? fo.id : null;
+      if(isNew){
+        row.org_id = orgId(); row.konum = v("eKonum").trim(); row.son_islem = today(); row.asama_tarih = {0:today()};
+        return q(sb.from("files").insert(row).select().single()).then(function(nfRow){
+          return Promise.all([upsertPriv(nfRow.id, priv), addEvent(nfRow.id, {tip:"asama", asama:0, notu:"Dosya açıldı", konum:row.konum, tarih:today(), pub:true})]).then(function(){ return nfRow });
+        });
+      }
+      if(f.aktif >= as.length) row.aktif = as.length - 1;
+      return q(sb.from("files").update(row).eq("id", f.id)).then(function(){ return upsertPriv(f.id, priv) }).then(function(){ return f });
+    }).then(function(x){
+      busy(false); closeSheet(); toast(isNew ? "Dosya oluşturuldu" : "Kaydedildi");
+      var bk = route.s === "cust" ? {s:"cust", id:route.id, folder:route.folder || null} : null;
+      return loadFiles().then(function(){ if(isNew) go("file", {id:x.id, from:bk ? "cust" : "", back:bk}); else loadDetail(x.id, true) });
+    })["catch"](function(err){ busy(false); if(ee) ee.textContent = errMsg(err); else toast(errMsg(err)) });
+  }
+  else if(id === "islemForm" && f){
+    var ai = +v("iAsama"), tarih = v("iTarih") || today(), konum = v("iKonum").trim(), not = v("iNot").trim(), done = isStaff() && v("iDone"), pub = isStaff() ? v("iPub") : true;
+    var changed = ai !== (f.aktif || 0), resent = f.durum === "iade" && v("iResent");
+    if(!changed && !not && konum === (f.konum || "") && !done && !resent){ $("iErr").textContent = "Aşama, konum ya da açıklamadan birini değiştirin."; return }
+    busy(true, "Kaydediliyor…");
+    var ev = {tip:changed ? "asama" : "not", asama:changed ? ai : null, tarih:tarih, notu:not, konum:konum !== (f.konum || "") || changed ? konum : null, pub:pub};
+    if(resent && !not) ev.notu = "Düzeltildi, kuruma tekrar gönderildi";
+    addEvent(f.id, ev).then(function(){ return done ? addEvent(f.id, {tip:"durum", durum:"tamam", tarih:tarih, pub:pub}) : (resent && !changed ? addEvent(f.id, {tip:"durum", durum:"devam", tarih:tarih, pub:pub}) : null) })
+      .then(function(){
+        var wa = v("iWa"); busy(false); closeSheet(); toast("İşlem kaydedildi");
+        if(wa && ev.pub){ var line = (done ? "Dosyanız tamamlandı." : changed ? "Dosyanız “" + f.asamalar[ai] + "” aşamasına geçti." : resent ? "Dosyanız düzeltilerek kuruma tekrar gönderildi." : "Dosyanızda yeni bir işlem var.") + (konum ? "\nŞu an: " + konum : "") + (not ? "\nNot: " + not : ""); notifyCustomer(f, line) }
+        return refreshFileAfter(f.id) })["catch"](function(err){ busy(false); $("iErr").textContent = errMsg(err) });
+  }
+  else if(id === "iadeForm" && f){
+    var neden = v("rNeden").trim(), kur = v("rKurum").trim();
+    if(!neden){ $("rErr").textContent = "İade nedenini yazın."; return }
+    var ra = v("rAsama");
+    busy(true, "Kaydediliyor…");
+    addEvent(f.id, {tip:"iade", asama:ra === "" ? null : +ra, tarih:v("rTarih") || today(), notu:(kur ? kur + " iade etti: " : "İade nedeni: ") + neden, konum:v("rKonum").trim() || null, pub:isStaff() ? v("rPub") : true})
+      .then(function(){ var wa = v("rWa"), pub = isStaff() ? v("rPub") : true; busy(false); closeSheet(); toast("İade kaydedildi");
+        if(wa && pub) notifyCustomer(f, "Dosyanız " + (kur || "kurum") + " tarafından iade edildi.\nNeden: " + neden + "\nDüzeltip en kısa sürede tekrar göndereceğiz.");
+        return refreshFileAfter(f.id) })["catch"](function(err){ busy(false); $("rErr").textContent = errMsg(err) });
+  }
+  else if(id === "evForm" && f){ var en = v("evNew").trim(); if(!en) return; var ev2 = (f.evrak || []).concat([{ad:en, ok:false}]); q(sb.from("files").update({evrak:ev2}).eq("id", f.id)).then(function(){ return refreshFileAfter(f.id) }).then(function(){ var el = $("evNew"); if(el) el.focus() })["catch"](function(err){ toast(errMsg(err)) }) }
+  else if(id === "docForm" && f){
+    var fs = ui.pendingDocs || [], meta = {tur:v("dTur"), tarih:v("dTarih") || today(), notu:v("dNot").trim(), pub:isStaff() ? v("dPub") : true};
+    closeSheet(); var done2 = 0, failed = [];
+    fs.reduce(function(p, file){ return p.then(function(){
+      busy(true, "Yükleniyor " + (done2 + 1) + "/" + fs.length + ": " + file.name);
+      var path = orgId() + "/" + f.id + "/" + uuid() + "-" + safeName(file.name);
+      return sb.storage.from("belgeler").upload(path, file, {contentType:file.type || "application/octet-stream", upsert:false}).then(function(r){
+        if(r.error) throw r.error;
+        return q(sb.from("docs").insert({file_id:f.id, path:path, ad:file.name, tip:file.type || "", boyut:file.size, tur:meta.tur, tarih:meta.tarih, notu:meta.notu, pub:meta.pub}));
+      }).then(function(){ done2++ }, function(err){ failed.push(file.name + " (" + errMsg(err) + ")") });
+    }) }, Promise.resolve()).then(function(){
+      busy(false); ui.pendingDocs = null;
+      if(done2) addEvent(f.id, {tip:"belge", tarih:meta.tarih, notu:done2 + " belge eklendi: " + meta.tur + (meta.notu ? " · " + meta.notu : ""), pub:meta.pub})["catch"](function(){});
+      toast(failed.length ? "Yüklenemedi: " + failed.join(", ") : done2 + " belge eklendi");
+      return loadDetail(f.id, true);
+    });
+  }
+  else if(id === "ocForm"){
+    q(sb.rpc("create_org_code", {p_not:v("ocNot").trim()})).then(function(code){ toast("Kod üretildi: " + code); return loadOrgCodes() }).then(render)["catch"](function(err){ toast(errMsg(err)) });
+  }
+  else if(id === "shareForm" && f){
+    var yt = v("shY"); busy(true, "Kod oluşturuluyor…");
+    q(sb.rpc("create_invite", {p_org:orgId(), p_role:"misafir", p_firm:null, p_file:f.id, p_yetki:yt})).then(function(code){ busy(false); closeSheet(); shareText(inviteText(code, "misafir", f.ad, yt)); return loadTeam() }).then(render)["catch"](function(err){ busy(false); toast(errMsg(err)) });
+  }
+  else if(id === "folderForm"){
+    var foad = v("foAd").trim(); if(!foad) return;
+    var pr2 = ui.folderEdit ? q(sb.from("folders").update({ad:foad}).eq("id", ui.folderEdit)) : q(sb.from("folders").insert({org_id:orgId(), firm_id:route.id, parent_id:route.folder || null, ad:foad}).select().single());
+    pr2.then(function(r){ closeSheet(); return loadFolders().then(function(){ return r }) }).then(function(r){
+      toast(ui.folderEdit ? "Kaydedildi" : "Klasör açıldı");
+      if(!ui.folderEdit && r && r.id) go("cust", {id:route.id, folder:r.id}); else render();
+    })["catch"](function(err){ toast(errMsg(err)) });
+  }
+  else if(id === "firmForm"){
+    var fad = v("fAd").trim(); if(!fad) return;
+    var body = {ad:fad, yetkili:v("fYet").trim(), tel:v("fTel").trim(), eposta:v("fEp").trim()};
+    var pr = ui.firmEdit ? q(sb.from("firms").update(body).eq("id", ui.firmEdit)) : q(sb.from("firms").insert(Object.assign({org_id:orgId()}, body)));
+    pr.then(function(){ closeSheet(); return loadFirms() }).then(function(){ render(); toast(ui.firmEdit ? "Kaydedildi" : "Müşteri eklendi. Girip klasör açabilirsiniz.") })["catch"](function(err){ toast(errMsg(err)) });
+  }
+  else if(id === "listsForm"){
+    var ups = S.lists.map(function(l, i){ return {id:l.id, user_id:l.user_id, ad:v("lAd" + i).trim() || l.ad, asamalar:v("lAs" + i).split("\n").map(function(s){ return s.trim() }).filter(Boolean), sira:i, updated_at:new Date().toISOString()} }).filter(function(l){ return l.asamalar.length });
+    q(sb.from("stage_lists").upsert(ups)).then(loadLists).then(function(){ render(); toast("Listeler kaydedildi") })["catch"](function(err){ toast(errMsg(err)) });
+  }
+  else if(id === "profForm"){ var pad = v("pAd").trim(); q(sb.from("profiles").upsert({id:S.user.id, ad:pad})).then(function(){ S.profile.ad = pad; render(); toast("Kaydedildi") })["catch"](function(err){ toast(errMsg(err)) }) }
+  else if(id === "orgSetForm"){
+    var oad2 = v("oAd").trim(), es = Math.max(1, parseInt(v("oEsik"), 10) || 20); if(!oad2) return;
+    var ik = v("oIs").split("\n").map(function(x){ return x.trim() }).filter(Boolean);
+    q(sb.from("orgs").update({ad:oad2, esik:es, is_kollari:ik}).eq("id", orgId())).then(function(){ S.org.orgs.ad = oad2; S.org.orgs.esik = es; S.org.orgs.is_kollari = ik; render(); toast("Kaydedildi") })["catch"](function(err){ toast(errMsg(err)) });
+  }
+});
+
+/* Telefonun geri tuşu */
+window.kasaBack = function(){
+  if(!$("busy").hidden) return true;
+  if(!$("viewer").hidden){ $("viewer").hidden = true; return true }
+  if($("ovl").innerHTML){ closeSheet(); return true }
+  if(route.s === "file" && route.from === "cust"){ var bk = route.back || {}; if(bk.s === "cust") go("cust", {id:bk.id, folder:bk.folder || null}); else go("home", {folder:bk.folder || null}); return true }
+  if(route.s === "cust" && route.folder){ var cf = folderOf(route.folder); go("cust", {id:route.id, folder:cf ? cf.parent_id || null : null}); return true }
+  if(route.s === "cust"){ go("firms"); return true }
+  if(route.s === "home" && route.folder){ var hf = folderOf(route.folder); go("home", {folder:hf ? hf.parent_id || null : null}); return true }
+  if(S.org && route.s !== "home"){ go("home"); return true }
+  return false;
+};
+document.addEventListener("keydown", function(e){ if(e.key === "Escape") window.kasaBack() });
+
+/* ================= Kurulabilir uygulama ================= */
+var installEvt = null;
+window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); installEvt = e });
+if("serviceWorker" in navigator && location.protocol === "https:"){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").then(function(reg){ reg.update() })["catch"](function(){}) }) }
+
+/* ================= Başlat ================= */
+if(initClient()){
+  sb.auth.getSession().then(function(r){
+    var s = r.data && r.data.session;
+    if(s){ S.user = s.user; return loadMe() }
+    render();
+  })["catch"](function(){ render() });
+  sb.auth.onAuthStateChange(function(ev, session){
+    if(ev === "SIGNED_IN" && session && (!S.user || S.user.id !== session.user.id)){ S.user = session.user; loadMe() }
+    if(ev === "SIGNED_OUT"){ S.user = null; S.mems = []; S.org = null; render() }
+  });
+} else render();
+})();
+</script>
+
+</body></html>
